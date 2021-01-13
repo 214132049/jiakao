@@ -15,11 +15,15 @@ class HomePageState extends State<HomePage> {
   bool _auth = false;
   String _code = '';
 
-  homePageState() {
+  void _homePageState() {
     if (_auth == true) {
-      Navigator.push(
-          context, MaterialPageRoute(builder: (context) => QuestionPage()));
+      this._jump();
     }
+  }
+
+  void _jump() {
+    Navigator.push(
+        context, MaterialPageRoute(builder: (context) => QuestionPage()));
   }
 
   Map<String, dynamic> _readAndroidBuildData(AndroidDeviceInfo build) {
@@ -56,6 +60,7 @@ class HomePageState extends State<HomePage> {
 
   void _enter() {
     print(_code);
+    this._jump();
   }
 
   void _setCode(v) {
@@ -67,42 +72,56 @@ class HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: Text('登录'),
-        ),
+        // appBar: AppBar(
+        //   title: Text('登录'),
+        // ),
         body: Padding(
-          padding: EdgeInsets.all(28.0),
-          child: Wrap(children: <Widget>[
-            Container(
-                padding: EdgeInsets.only(
-                    left: 30.0, right: 30.0, top: 2.0, bottom: 2.0),
-                margin: EdgeInsets.only(top: 100.0, bottom: 30.0),
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(100.0),
-                    border: Border.all(
-                        width: 1.0,
-                        style: BorderStyle.solid,
-                        color: Color.fromRGBO(0, 0, 0, 0.1))),
-                child: TextField(
-                  onChanged: _setCode,
-                  decoration: InputDecoration(
-                    hintText: '请输入激活码',
-                    border: InputBorder.none,
-                  ),
-                )),
-            Container(
-                width: double.infinity,
-                child: MaterialButton(
-                    color: Colors.blueAccent,
-                    textColor: Colors.white,
-                    height: ScreenUtil().setHeight(48.0),
-                    onPressed: _enter,
-                    child: Text('提交'),
-                    shape: RoundedRectangleBorder(
-                        side: BorderSide.none,
-                        borderRadius: BorderRadius.all(Radius.circular(50))))
+      padding: EdgeInsets.all(28.0),
+      child: Wrap(children: <Widget>[
+        Container(
+          margin: EdgeInsets.only(top: 100.0),
+          child: Text(
+            '激活码登录',
+            style: TextStyle(fontSize: 24.0),
+          ),
+        ),
+        Container(
+            padding:
+                EdgeInsets.only(left: 30.0, right: 30.0, top: 2.0, bottom: 2.0),
+            margin: EdgeInsets.only(top: 50.0, bottom: 30.0),
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(100.0),
+                border: Border.all(
+                    width: 1.0,
+                    style: BorderStyle.solid,
+                    color: Color.fromRGBO(0, 0, 0, 0.1))),
+            child: TextField(
+              onChanged: _setCode,
+              style: TextStyle(
+                  textBaseline: TextBaseline.alphabetic, fontSize: 18.0),
+              decoration: InputDecoration(
+                hintText: '请输入激活码',
+                border: InputBorder.none,
+              ),
+            )),
+        Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+                gradient: LinearGradient(
+                    colors: [Color(0xffffa192), Color(0xffff775d)]), // 渐变色
+                borderRadius: BorderRadius.circular(48.0)),
+            child: MaterialButton(
+                textColor: Colors.white,
+                height: ScreenUtil().setHeight(48.0),
+                onPressed: _enter,
+                child: Text(
+                  '登录',
+                  style: TextStyle(fontSize: 20.0, letterSpacing: 16.0),
                 ),
-          ]),
-        ));
+                shape: RoundedRectangleBorder(
+                    side: BorderSide.none,
+                    borderRadius: BorderRadius.circular(48.0)))),
+      ]),
+    ));
   }
 }
