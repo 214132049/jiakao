@@ -1,14 +1,16 @@
 import 'dart:convert';
+import 'dart:async' show Future;
 
 import 'package:flutter/material.dart';
-import 'dart:async' show Future;
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:chips_choice/chips_choice.dart';
 
 class Question {
   List<String> options;
   String answer;
   String question;
   int questionType;
+  String userAnswer;
 }
 
 class QuestionPage extends StatefulWidget {
@@ -34,6 +36,9 @@ class QuestionState extends State<QuestionPage> {
           setState(() {
             List<Question> questions = jsonDecode(json);
             questions = questions.sublist(0, 100);
+            for (Question question in questions) {
+              question.userAnswer = '';
+            }
           })
         });
   }
@@ -70,6 +75,9 @@ class QuestionState extends State<QuestionPage> {
 
   _buildPageViewItem(index) {
     Question question = questions[index];
+    var options = question.questionType == 3
+        ? _buildMultiple(question.options, question.userAnswer)
+        : _buildSingle(question.options, question.userAnswer);
     return Wrap(
       children: [
         Wrap(
@@ -85,29 +93,32 @@ class QuestionState extends State<QuestionPage> {
                 style: TextStyle(color: Color(0xff333333), fontSize: 16.0)),
           ],
         ),
-        Wrap(
-          children: question.options
-              .asMap()
-              .keys
-              .map<Widget>((index) => Container(
-                    padding: EdgeInsets.all(16.0),
-                    child: Wrap(
-                      children: [
-                        Container(
-                          padding: EdgeInsets.all(10.0),
-                          child: Text(answersEum[index]),
-                        ),
-                        Text(
-                          question.options[index],
-                          style: TextStyle(
-                              color: Color(0xff333333), fontSize: 16.0),
-                        )
-                      ],
-                    ),
-                  ))
-              .toList(),
-        )
+        Container(padding: EdgeInsets.all(16.0), child: options)
       ],
+    );
+  }
+
+  _buildSingle(options, value) {
+    return ChipsChoice.single(
+      value: value,
+      onChanged: (val) => setState(() => value = val),
+      choiceItems: C2Choice.listFrom<String, String>(
+        source: options,
+        value: (i, v) => v,
+        label: (i, v) => v,
+      ),
+    );
+  }
+
+  _buildMultiple(options, value) {
+    return ChipsChoice.multiple(
+      value: value,
+      onChanged: (val) => setState(() => value = val),
+      choiceItems: C2Choice.listFrom<String, String>(
+        source: options,
+        value: (i, v) => v,
+        label: (i, v) => v,
+      ),
     );
   }
 }
