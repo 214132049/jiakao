@@ -30,6 +30,8 @@ dependencies:
   flutter_screenutil: ^4.0.2+3
   device_info: ^1.0.0
   chips_choice: ^2.0.1
+  flutter_easyloading: ^2.2.2
+  http: ^0.12.2
 
 dev_dependencies:
   flutter_test:

@@ -1,9 +1,12 @@
 import 'dart:convert';
 import 'dart:async' show Future;
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:chips_choice/chips_choice.dart';
+
+import './chip.dart';
 
 class Questions {
   List<Question> questions;
@@ -80,8 +83,13 @@ class QuestionState extends State<QuestionPage> {
   Future<Questions> loadQuestionJson() async {
     String json = await rootBundle.loadString('assets/json/questions.json');
     List<dynamic> listJson = jsonDecode(json);
-    listJson = listJson.sublist(0, 100);
-    Questions questionList = Questions.fromJson(listJson);
+    var rng = new Random();
+    var realList = [];
+    for (var i = 0; i < 100; i++) {
+      var rngIndex = rng.nextInt(listJson.length);
+      realList.add(listJson[rngIndex]);
+    }
+    Questions questionList = Questions.fromJson(realList);
     for (Question question in questionList.questions) {
       question.userAnswer = '';
     }
@@ -102,6 +110,7 @@ class QuestionState extends State<QuestionPage> {
     }
     return Scaffold(
       appBar: AppBar(title: Text(_title)),
+      backgroundColor: Colors.white,
       body: Stack(
         children: [
           PageView.builder(
@@ -119,31 +128,33 @@ class QuestionState extends State<QuestionPage> {
 
   _buildPageViewItem(index) {
     var question = questions.getItem(index);
-    var options = question.questionType == 3
+    var options = question.questionType == 2
         ? _buildMultiple(question)
         : _buildSingle(question);
-    return Wrap(
-      children: [
-        Container(
-          padding: EdgeInsets.all(16.0),
-          child: RichText(
-              text: TextSpan(
-            children: [
-              TextSpan(
-                text: questionTypes[question.questionType],
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 12.0,
-                    backgroundColor: Colors.red),
-              ),
-              TextSpan(
-                  text: (index + 1).toString() + '、' + question.question,
-                  style: TextStyle(color: Color(0xff333333), fontSize: 16.0)),
-            ],
-          )),
-        ),
-        Container(padding: EdgeInsets.all(16.0), child: options)
-      ],
+    return SingleChildScrollView(
+      child: Wrap(
+        children: [
+          Container(
+            padding: EdgeInsets.all(16.0),
+            child: RichText(
+                text: TextSpan(
+              children: [
+                TextSpan(
+                  text: questionTypes[question.questionType],
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12.0,
+                      backgroundColor: Color(0xff00af63)),
+                ),
+                TextSpan(
+                    text: (index + 1).toString() + '、' + question.question,
+                    style: TextStyle(color: Color(0xff333333), fontSize: 16.0)),
+              ],
+            )),
+          ),
+          Container(padding: EdgeInsets.all(16.0), child: options)
+        ],
+      ),
     );
   }
 
@@ -155,20 +166,39 @@ class QuestionState extends State<QuestionPage> {
       choiceItems: C2Choice.listFrom<String, dynamic>(
         source: question.options,
         value: (i, v) => answersEnum[i],
-        label: (i, v) => answersEnum[i] + v,
+        label: (i, v) => v,
+        meta: (i, v) => question.userAnswer,
       ),
+      choiceBuilder: (item) {
+        return CustomChip(
+            label: item.label,
+            selected: item.selected,
+            onSelect: item.select,
+            meta: item.meta,
+            value: item.value);
+      },
     );
   }
 
   _buildMultiple(question) {
     return ChipsChoice.multiple(
-      value: question.userAnswer,
-      onChanged: (val) => setState(() => question.userAnswer = val),
+      direction: Axis.vertical,
+      value: question.userAnswer.split(''),
+      onChanged: (val) => setState(() => question.userAnswer = val.join('')),
       choiceItems: C2Choice.listFrom<String, dynamic>(
         source: question.options,
         value: (i, v) => answersEnum[i],
-        label: (i, v) => answersEnum[i] + v,
+        label: (i, v) => v,
+        meta: (i, v) => question.userAnswer,
       ),
+      choiceBuilder: (item) {
+        return CustomChip(
+            label: item.label,
+            selected: item.selected,
+            onSelect: item.select,
+            meta: item.meta,
+            value: item.value);
+      },
     );
   }
 }

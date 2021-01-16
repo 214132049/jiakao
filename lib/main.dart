@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter/services.dart';
-import 'dart:io';
-import './homePage.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+
+import './loginPage.dart';
 
 void main() {
   runApp(MyApp());
@@ -19,6 +22,7 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
+
   @override
   Widget build(BuildContext context) {
     return ScreenUtilInit(
@@ -32,7 +36,8 @@ class MyApp extends StatelessWidget {
             textSelectionHandleColor: Color(0xffff775d),
             visualDensity: VisualDensity.adaptivePlatformDensity,
           ),
-          home: HomePage(),
+          home: LoginPage(),
+          builder: EasyLoading.init(),
         ));
   }
 }
