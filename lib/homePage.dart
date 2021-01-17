@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import './questionPage.dart';
+
+import 'questionPage.dart';
 
 class HomePage extends StatefulWidget {
   HomePage({Key key}) : super(key: key);
@@ -36,7 +37,7 @@ class HomePageState extends State<HomePage> {
                       color: Color.fromRGBO(0, 0, 0, 0.1))),
               child: Text(
                   // onTap: _enter,
-                  '开始模拟',
+                  '模拟考试',
                   style: TextStyle(fontSize: 24.0, color: Colors.white))),
         )
       ],

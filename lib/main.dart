@@ -5,7 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 
-import './loginPage.dart';
+import 'loginPage.dart';
 
 void main() {
   runApp(MyApp());

@@ -5,8 +5,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:http/http.dart' as http;
 
-import './HomePage.dart';
-import './deviceUtil.dart';
+import 'deviceUtil.dart';
+import 'homePage.dart';
 
 class LoginPage extends StatefulWidget {
 
