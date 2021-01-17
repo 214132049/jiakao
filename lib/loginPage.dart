@@ -9,7 +9,6 @@ import 'deviceUtil.dart';
 import 'homePage.dart';
 
 class LoginPage extends StatefulWidget {
-
   LoginPage({Key key}) : super(key: key);
 
   @override
@@ -19,7 +18,7 @@ class LoginPage extends StatefulWidget {
 class LoginPageState extends State<LoginPage> {
   String _code = '';
   bool checked = false;
-  String host = 'http://10.0.2.2:7001' ;
+  String host = 'http://10.0.2.2:7001';
   final deviceInfo = DeviceInfo();
 
   LoginPageState() {
@@ -29,8 +28,10 @@ class LoginPageState extends State<LoginPage> {
   Future checkDevice() async {
     String androidId = await deviceInfo.getDeviceInfo();
     try {
+      EasyLoading.show(status: '请求中');
       var url = '$host/api/check';
-      var response = await http.post(url, body: {'deviceId': androidId});
+      var response = await http.post(url,
+          body: {'deviceId': androidId}).timeout(Duration(seconds: 30));
       if (response.statusCode != 200) {
         throw Error.safeToString('请求异常');
       }
@@ -38,13 +39,14 @@ class LoginPageState extends State<LoginPage> {
       if (data['code'] != 1) {
         throw Error.safeToString(data['message']);
       }
-      Navigator.push(
-          context, MaterialPageRoute(builder: (context) => HomePage()));
+      _jumpPage();
     } catch (exception) {
       setState(() {
         checked = true;
       });
-      EasyLoading.showError(exception.replaceAll('"', ''));
+      if (exception is String) {
+        EasyLoading.showError(exception.replaceAll('"', ''));
+      }
     } finally {
       EasyLoading.dismiss();
     }
@@ -60,7 +62,10 @@ class LoginPageState extends State<LoginPage> {
 
     try {
       var url = '$host/api/active';
-      var response = await http.post(url, body: {'code': _code, 'deviceId': androidId});
+      var response = await http.post(url, body: {
+        'code': _code,
+        'deviceId': androidId
+      }).timeout(Duration(seconds: 30));
       if (response.statusCode != 200) {
         throw Error.safeToString('请求异常');
       }
@@ -68,13 +73,22 @@ class LoginPageState extends State<LoginPage> {
       if (data['code'] != 1) {
         throw Error.safeToString(data['message']);
       }
-      Navigator.push(
-          context, MaterialPageRoute(builder: (context) => HomePage()));
+      _jumpPage();
     } catch (exception) {
-      EasyLoading.showError(exception.replaceAll('"', ''));
+      if (exception is String) {
+        EasyLoading.showError(exception.replaceAll('"', ''));
+      }
     } finally {
       EasyLoading.dismiss();
     }
+  }
+
+  _jumpPage() {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => HomePage()),
+      (route) => route == null,
+    );
   }
 
   void _enter() {
@@ -89,6 +103,7 @@ class LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    print(checked);
     if (!checked) {
       return Scaffold();
     }
