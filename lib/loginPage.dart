@@ -18,7 +18,7 @@ class LoginPage extends StatefulWidget {
 class LoginPageState extends State<LoginPage> {
   String _code = '';
   bool checked = false;
-  String host = 'http://10.0.2.2:7001';
+  String host = 'http://47.103.79.180:80';
   final deviceInfo = DeviceInfo();
 
   LoginPageState() {
@@ -28,12 +28,12 @@ class LoginPageState extends State<LoginPage> {
   Future checkDevice() async {
     String androidId = await deviceInfo.getDeviceInfo();
     try {
-      EasyLoading.show(status: '请求中');
+      EasyLoading.show(status: '初始化中');
       var url = '$host/api/check';
       var response = await http.post(url,
           body: {'deviceId': androidId}).timeout(Duration(seconds: 30));
       if (response.statusCode != 200) {
-        throw Error.safeToString('请求异常');
+        throw Error.safeToString('初始化常');
       }
       var data = jsonDecode(response.body);
       if (data['code'] != 1) {
@@ -103,10 +103,9 @@ class LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    print(checked);
-    if (!checked) {
-      return Scaffold();
-    }
+    // if (!checked) {
+    //   return Scaffold();
+    // }
     return Scaffold(
         body: Padding(
       padding: EdgeInsets.all(28.0),
