@@ -37,7 +37,7 @@ class LoginPageState extends State<LoginPage> {
       }
       var data = jsonDecode(response.body);
       if (data['code'] != 1) {
-        throw Error.safeToString(data['message']);
+        // throw Error.safeToString(data['message']);
       }
       _jumpPage();
     } catch (exception) {
