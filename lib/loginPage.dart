@@ -18,19 +18,19 @@ class LoginPage extends StatefulWidget {
 
 class LoginPageState extends State<LoginPage> {
   String _code = '';
-  bool checked = false;
   String host = 'http://47.103.79.180:80';
   final deviceInfo = DeviceInfo();
-  SharedPreferences _prefs = '' as SharedPreferences;
+  SharedPreferences _prefs;
 
   LoginPageState() {
+    EasyLoading.instance..userInteractions = false;
     checkDevice();
   }
 
   Future checkDevice() async {
     SharedPreferences _prefs = await SharedPreferences.getInstance();
 
-    if (_prefs.getBool('activated'))  {
+    if (_prefs.getBool('activated')??false) {
       _jumpPage();
       return;
     }
@@ -42,18 +42,15 @@ class LoginPageState extends State<LoginPage> {
       var response = await http.post(url,
           body: {'deviceId': androidId}).timeout(Duration(seconds: 30));
       if (response.statusCode != 200) {
-        throw Error.safeToString('初始化常');
+        throw Error.safeToString('初始化失败');
       }
       var data = jsonDecode(response.body);
       if (data['code'] != 1) {
-        throw Error.safeToString(data['message']);
+        return;
       }
       _prefs.setBool('activated', true);
       _jumpPage();
     } catch (exception) {
-      setState(() {
-        checked = true;
-      });
       if (exception is String) {
         EasyLoading.showError(exception.replaceAll('"', ''));
       }
@@ -114,9 +111,6 @@ class LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    // if (!checked) {
-    //   return Scaffold();
-    // }
     return Scaffold(
         body: Padding(
       padding: EdgeInsets.all(28.0),
