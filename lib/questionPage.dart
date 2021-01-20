@@ -165,13 +165,15 @@ class QuestionState extends State<QuestionPage> {
                               ]), // 渐变色
                               borderRadius: BorderRadius.circular(36.0)),
                           child: MaterialButton(
-                            onPressed: _submit,
-                            child: Text(
-                              '交卷并查看结果',
-                              style: TextStyle(
-                                  fontSize: 16.0, color: Colors.white),
-                            ),
-                          )),
+                              onPressed: _submit,
+                              child: Text(
+                                '交卷并查看结果',
+                                style: TextStyle(
+                                    fontSize: 16.0, color: Colors.white),
+                              ),
+                              shape: RoundedRectangleBorder(
+                                  side: BorderSide.none,
+                                  borderRadius: BorderRadius.circular(48.0)))),
                     ),
                   )
                 ])

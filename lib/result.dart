@@ -23,7 +23,7 @@ class ResultPageState extends State<ResultPage> {
     _again() {
       Navigator.of(context).pop();
     }
-    
+
     _review() {
       Navigator.of(context).pop('review');
     }
@@ -91,7 +91,7 @@ class ResultPageState extends State<ResultPage> {
                       Container(
                           margin: EdgeInsets.symmetric(horizontal: 20.0),
                           height: 36.0,
-                          width: 160.0,
+                          width: 130.0,
                           decoration: BoxDecoration(
                               // 渐变色
                               border: Border.all(
@@ -100,28 +100,32 @@ class ResultPageState extends State<ResultPage> {
                                   color: const Color(0xffff775d)),
                               borderRadius: BorderRadius.circular(48.0)),
                           child: MaterialButton(
-                            onPressed: _review,
-                            child: Text(
-                              '查看错题',
-                              style: TextStyle(
-                                  fontSize: 16.0, color: Color(0xffff775d)),
-                            ),
-                          )),
+                              onPressed: _review,
+                              child: Text(
+                                '查看错题',
+                                style: TextStyle(
+                                    fontSize: 16.0, color: Color(0xffff775d)),
+                              ),
+                              shape: RoundedRectangleBorder(
+                                  side: BorderSide.none,
+                                  borderRadius: BorderRadius.circular(48.0)))),
                       Container(
                           margin: EdgeInsets.symmetric(horizontal: 20.0),
                           height: 36.0,
-                          width: 160.0,
+                          width: 130.0,
                           decoration: BoxDecoration(
                               color: Color(0xffff775d),
                               borderRadius: BorderRadius.circular(48.0)),
                           child: MaterialButton(
-                            onPressed: _again,
-                            child: Text(
-                              '继续练习',
-                              style: TextStyle(
-                                  fontSize: 16.0, color: Colors.white),
-                            ),
-                          ))
+                              onPressed: _again,
+                              child: Text(
+                                '继续练习',
+                                style: TextStyle(
+                                    fontSize: 16.0, color: Colors.white),
+                              ),
+                              shape: RoundedRectangleBorder(
+                                  side: BorderSide.none,
+                                  borderRadius: BorderRadius.circular(48.0))))
                     ],
                   ),
                 ),
