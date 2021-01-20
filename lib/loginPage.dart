@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
 import 'deviceUtil.dart';
@@ -20,12 +21,20 @@ class LoginPageState extends State<LoginPage> {
   bool checked = false;
   String host = 'http://47.103.79.180:80';
   final deviceInfo = DeviceInfo();
+  SharedPreferences _prefs = '' as SharedPreferences;
 
   LoginPageState() {
     checkDevice();
   }
 
   Future checkDevice() async {
+    SharedPreferences _prefs = await SharedPreferences.getInstance();
+
+    if (_prefs.getBool('activated'))  {
+      _jumpPage();
+      return;
+    }
+
     String androidId = await deviceInfo.getDeviceInfo();
     try {
       EasyLoading.show(status: '初始化中');
@@ -37,8 +46,9 @@ class LoginPageState extends State<LoginPage> {
       }
       var data = jsonDecode(response.body);
       if (data['code'] != 1) {
-        // throw Error.safeToString(data['message']);
+        throw Error.safeToString(data['message']);
       }
+      _prefs.setBool('activated', true);
       _jumpPage();
     } catch (exception) {
       setState(() {
@@ -73,6 +83,7 @@ class LoginPageState extends State<LoginPage> {
       if (data['code'] != 1) {
         throw Error.safeToString(data['message']);
       }
+      _prefs.setBool('activated', true);
       _jumpPage();
     } catch (exception) {
       if (exception is String) {
