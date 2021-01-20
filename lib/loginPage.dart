@@ -28,7 +28,7 @@ class LoginPageState extends State<LoginPage> {
   }
 
   Future checkDevice() async {
-    SharedPreferences _prefs = await SharedPreferences.getInstance();
+    _prefs = await SharedPreferences.getInstance();
 
     if (_prefs.getBool('activated')??false) {
       _jumpPage();
@@ -59,7 +59,7 @@ class LoginPageState extends State<LoginPage> {
     }
   }
 
-  Future activeDevice() async {
+  Future _activeDevice() async {
     if (_code.trim() == '') {
       EasyLoading.showToast('请先输入激活码');
       return;
@@ -97,10 +97,6 @@ class LoginPageState extends State<LoginPage> {
       MaterialPageRoute(builder: (context) => HomePage()),
       (route) => route == null,
     );
-  }
-
-  void _enter() {
-    activeDevice();
   }
 
   void _setCode(v) {
@@ -150,7 +146,7 @@ class LoginPageState extends State<LoginPage> {
             child: MaterialButton(
                 textColor: Colors.white,
                 height: ScreenUtil().setHeight(48.0),
-                onPressed: _enter,
+                onPressed: _activeDevice,
                 child: Text(
                   '登录',
                   style: TextStyle(fontSize: 20.0, letterSpacing: 16.0),
