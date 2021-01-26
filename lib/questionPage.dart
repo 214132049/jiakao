@@ -196,13 +196,20 @@ class QuestionState extends State<QuestionPage> {
             child: RichText(
                 text: TextSpan(
               children: [
-                TextSpan(
-                  text: questionTypes[question.questionType],
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 12.0,
-                      backgroundColor: Color(0xff00af63)),
-                ),
+                WidgetSpan(
+                    child: Container(
+                  child: Text(
+                    questionTypes[question.questionType],
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12.0,
+                        backgroundColor: Color(0xff00af63)),
+                  ),
+                  decoration:
+                      BoxDecoration(borderRadius: BorderRadius.circular(8.0)),
+                  margin: EdgeInsets.only(right: 12.0),
+                  padding: EdgeInsets.symmetric(vertical: 5.0, horizontal: 8.0),
+                )),
                 TextSpan(
                     text: (index + 1).toString() + '、' + question.question,
                     style: TextStyle(color: Color(0xff333333), fontSize: 16.0)),
