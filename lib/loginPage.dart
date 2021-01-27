@@ -17,6 +17,8 @@ class LoginPage extends StatefulWidget {
 }
 
 class LoginPageState extends State<LoginPage> {
+  String _name = '';
+  String _phone = '';
   String _code = '';
   String host = 'http://47.103.79.180:80';
   final deviceInfo = DeviceInfo();
@@ -105,19 +107,24 @@ class LoginPageState extends State<LoginPage> {
     });
   }
 
+  void _setName(v) {
+    setState(() {
+      _name = v;
+    });
+  }
+
+  void _setPhone(v) {
+    setState(() {
+      _phone = v;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         body: Padding(
       padding: EdgeInsets.all(28.0),
       child: Wrap(children: <Widget>[
-        Container(
-          margin: EdgeInsets.only(top: 100.0),
-          child: Text(
-            '激活码登录',
-            style: TextStyle(fontSize: 24.0),
-          ),
-        ),
         Container(
             padding:
                 EdgeInsets.only(left: 30.0, right: 30.0, top: 2.0, bottom: 2.0),
@@ -133,7 +140,47 @@ class LoginPageState extends State<LoginPage> {
               style: TextStyle(
                   textBaseline: TextBaseline.alphabetic, fontSize: 18.0),
               decoration: InputDecoration(
-                hintText: '请输入激活码',
+                hintText: '请输入姓名',
+                border: InputBorder.none,
+              ),
+            )),
+        Container(
+            padding:
+            EdgeInsets.only(left: 30.0, right: 30.0, top: 2.0, bottom: 2.0),
+            margin: EdgeInsets.only(top: 50.0, bottom: 30.0),
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(100.0),
+                border: Border.all(
+                    width: 1.0,
+                    style: BorderStyle.solid,
+                    color: Color.fromRGBO(0, 0, 0, 0.1))),
+            child: TextField(
+              onChanged: _setPhone,
+              maxLength: 11,
+              style: TextStyle(
+                  textBaseline: TextBaseline.alphabetic, fontSize: 18.0),
+              decoration: InputDecoration(
+                hintText: '请输入手机号',
+                border: InputBorder.none,
+              ),
+            )),
+        Container(
+            padding:
+            EdgeInsets.only(left: 30.0, right: 30.0, top: 2.0, bottom: 2.0),
+            margin: EdgeInsets.only(top: 50.0, bottom: 30.0),
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(100.0),
+                border: Border.all(
+                    width: 1.0,
+                    style: BorderStyle.solid,
+                    color: Color.fromRGBO(0, 0, 0, 0.1))),
+            child: TextField(
+              onChanged: _setCode,
+              maxLength: 6,
+              style: TextStyle(
+                  textBaseline: TextBaseline.alphabetic, fontSize: 18.0),
+              decoration: InputDecoration(
+                hintText: '请输入验证码',
                 border: InputBorder.none,
               ),
             )),
