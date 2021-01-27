@@ -58,10 +58,12 @@ class Question {
 }
 
 class QuestionPage extends StatefulWidget {
-  QuestionPage({Key key}) : super(key: key);
+  final String type;
+
+  QuestionPage({Key key, @required this.type}) : super(key: key);
 
   @override
-  QuestionState createState() => QuestionState();
+  QuestionState createState() => QuestionState(type);
 }
 
 class QuestionState extends State<QuestionPage> {
@@ -70,8 +72,14 @@ class QuestionState extends State<QuestionPage> {
   Map<int, String> questionTypes = {1: '单选题', 2: '判断题', 3: '多选题'};
   Questions questions = Questions.fromJson([]);
   bool isReview = false;
+  final pathMap = const {
+    'A': 'assets/json/questions.json',
+    'C': 'assets/json/questions2.json'
+  };
+  String _type;
 
-  QuestionState() {
+  QuestionState(type) {
+    _type = type;
     isReview = false;
     this.getQuestions();
   }
@@ -85,7 +93,8 @@ class QuestionState extends State<QuestionPage> {
   }
 
   Future<Questions> loadQuestionJson() async {
-    String json = await rootBundle.loadString('assets/json/questions.json');
+    String path = pathMap[_type];
+    String json = await rootBundle.loadString(path);
     List<dynamic> listJson = jsonDecode(json);
     var rng = new Random();
     var realList = [];
@@ -201,14 +210,17 @@ class QuestionState extends State<QuestionPage> {
                   child: Text(
                     questionTypes[question.questionType],
                     style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12.0,
-                        backgroundColor: Color(0xff00af63)),
+                      color: Colors.white,
+                      fontSize: 12.0,
+                    ),
                   ),
-                  decoration:
-                      BoxDecoration(borderRadius: BorderRadius.circular(8.0)),
-                  margin: EdgeInsets.only(right: 12.0),
-                  padding: EdgeInsets.symmetric(vertical: 5.0, horizontal: 8.0),
+                  decoration: BoxDecoration(
+                      color: Color(0xff00af63),
+                      borderRadius: BorderRadius.only(
+                          topRight: Radius.circular(8.0),
+                          bottomLeft: Radius.circular(8.0))),
+                  margin: EdgeInsets.only(right: 6.0),
+                  padding: EdgeInsets.symmetric(vertical: 1.0, horizontal: 6.0),
                 )),
                 TextSpan(
                     text: (index + 1).toString() + '、' + question.question,

@@ -26,13 +26,13 @@ class LoginPageState extends State<LoginPage> {
 
   LoginPageState() {
     EasyLoading.instance..userInteractions = false;
-    checkDevice();
+    // checkDevice();
   }
 
   Future checkDevice() async {
     _prefs = await SharedPreferences.getInstance();
 
-    if (_prefs.getBool('activated')??false) {
+    if (_prefs.getBool('activated') ?? false) {
       _jumpPage();
       return;
     }
@@ -62,8 +62,16 @@ class LoginPageState extends State<LoginPage> {
   }
 
   Future _activeDevice() async {
+    if (_name.trim() == '') {
+      EasyLoading.showToast('请输入姓名');
+      return;
+    }
+    if (_phone.trim() == '') {
+      EasyLoading.showToast('请输入手机号');
+      return;
+    }
     if (_code.trim() == '') {
-      EasyLoading.showToast('请先输入激活码');
+      EasyLoading.showToast('请输入验证码');
       return;
     }
     EasyLoading.show(status: 'loading...');
@@ -101,15 +109,15 @@ class LoginPageState extends State<LoginPage> {
     );
   }
 
-  void _setCode(v) {
-    setState(() {
-      _code = v;
-    });
-  }
-
   void _setName(v) {
     setState(() {
       _name = v;
+    });
+  }
+
+  void _setCode(v) {
+    setState(() {
+      _code = v;
     });
   }
 
@@ -126,9 +134,11 @@ class LoginPageState extends State<LoginPage> {
       padding: EdgeInsets.all(28.0),
       child: Wrap(children: <Widget>[
         Container(
-            padding:
-                EdgeInsets.only(left: 30.0, right: 30.0, top: 2.0, bottom: 2.0),
-            margin: EdgeInsets.only(top: 50.0, bottom: 30.0),
+            margin: EdgeInsets.only(top: 60.0),
+            child: Text('登录', style: TextStyle(fontSize: 24.0))),
+        Container(
+            padding: EdgeInsets.symmetric(horizontal: 20.0),
+            margin: EdgeInsets.only(top: 50.0, bottom: 10.0),
             decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(100.0),
                 border: Border.all(
@@ -136,18 +146,16 @@ class LoginPageState extends State<LoginPage> {
                     style: BorderStyle.solid,
                     color: Color.fromRGBO(0, 0, 0, 0.1))),
             child: TextField(
-              onChanged: _setCode,
-              style: TextStyle(
-                  textBaseline: TextBaseline.alphabetic, fontSize: 18.0),
+              onChanged: _setName,
+              style: TextStyle(fontSize: 16.0),
               decoration: InputDecoration(
                 hintText: '请输入姓名',
                 border: InputBorder.none,
               ),
             )),
         Container(
-            padding:
-            EdgeInsets.only(left: 30.0, right: 30.0, top: 2.0, bottom: 2.0),
-            margin: EdgeInsets.only(top: 50.0, bottom: 30.0),
+            padding: EdgeInsets.symmetric(horizontal: 20.0),
+            margin: EdgeInsets.symmetric(vertical: 10.0),
             decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(100.0),
                 border: Border.all(
@@ -156,18 +164,15 @@ class LoginPageState extends State<LoginPage> {
                     color: Color.fromRGBO(0, 0, 0, 0.1))),
             child: TextField(
               onChanged: _setPhone,
-              maxLength: 11,
-              style: TextStyle(
-                  textBaseline: TextBaseline.alphabetic, fontSize: 18.0),
+              style: TextStyle(fontSize: 16.0),
               decoration: InputDecoration(
                 hintText: '请输入手机号',
                 border: InputBorder.none,
               ),
             )),
         Container(
-            padding:
-            EdgeInsets.only(left: 30.0, right: 30.0, top: 2.0, bottom: 2.0),
-            margin: EdgeInsets.only(top: 50.0, bottom: 30.0),
+            padding: EdgeInsets.symmetric(horizontal: 20.0),
+            margin: EdgeInsets.symmetric(vertical: 10.0),
             decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(100.0),
                 border: Border.all(
@@ -176,9 +181,7 @@ class LoginPageState extends State<LoginPage> {
                     color: Color.fromRGBO(0, 0, 0, 0.1))),
             child: TextField(
               onChanged: _setCode,
-              maxLength: 6,
-              style: TextStyle(
-                  textBaseline: TextBaseline.alphabetic, fontSize: 18.0),
+              style: TextStyle(fontSize: 16.0),
               decoration: InputDecoration(
                 hintText: '请输入验证码',
                 border: InputBorder.none,
@@ -186,6 +189,7 @@ class LoginPageState extends State<LoginPage> {
             )),
         Container(
             width: double.infinity,
+            margin: EdgeInsets.only(top: 50.0),
             decoration: BoxDecoration(
                 gradient: LinearGradient(
                     colors: [Color(0xffffa192), Color(0xffff775d)]), // 渐变色

@@ -89,7 +89,7 @@ class ResultPageState extends State<ResultPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Container(
-                          margin: EdgeInsets.symmetric(horizontal: 20.0),
+                          margin: EdgeInsets.symmetric(horizontal: 30.0),
                           height: 36.0,
                           width: 130.0,
                           decoration: BoxDecoration(
@@ -110,7 +110,7 @@ class ResultPageState extends State<ResultPage> {
                                   side: BorderSide.none,
                                   borderRadius: BorderRadius.circular(48.0)))),
                       Container(
-                          margin: EdgeInsets.symmetric(horizontal: 20.0),
+                          margin: EdgeInsets.symmetric(horizontal: 30.0),
                           height: 36.0,
                           width: 130.0,
                           decoration: BoxDecoration(
