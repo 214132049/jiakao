@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -23,10 +24,49 @@ class LoginPageState extends State<LoginPage> {
   String host = 'http://47.103.79.180:80';
   final deviceInfo = DeviceInfo();
   SharedPreferences _prefs;
+  Timer _timer;
+  int _countdown = 60;
+  int _seconds;
+  bool _available = true; // 是否可以获取验证码
+  String _verifyStr = '获取验证码';
 
   LoginPageState() {
     EasyLoading.instance..userInteractions = false;
     // checkDevice();
+  }
+
+  Future _getCode() async {
+    if (!_available) {
+      return;
+    }
+    _seconds = _countdown;
+    _startTimer();
+    print('21');
+  }
+
+  void _startTimer() {
+    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      if (_seconds == 0) {
+        setState(() {
+          _verifyStr = '重新发送';
+          _available = true;
+          _seconds = _countdown;
+        });
+        _cancelTimer();
+        return;
+      }
+      setState(() {
+        _available = false;
+        _verifyStr = '已发送$_seconds' + 's';
+      });
+      _seconds -= 1;
+    });
+  }
+
+  /// 取消倒计时的计时器。
+  void _cancelTimer() {
+    // 计时器（`Timer`）组件的取消（`cancel`）方法，取消计时器。
+    _timer?.cancel();
   }
 
   Future checkDevice() async {
@@ -76,7 +116,7 @@ class LoginPageState extends State<LoginPage> {
     }
     EasyLoading.show(status: 'loading...');
     String androidId = await deviceInfo.getDeviceInfo();
-
+    _jumpPage();
     try {
       var url = '$host/api/active';
       var response = await http.post(url, body: {
@@ -128,84 +168,115 @@ class LoginPageState extends State<LoginPage> {
   }
 
   @override
+  void dispose() {
+    ///取消计时器
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
+        backgroundColor: Colors.white,
         body: Padding(
-      padding: EdgeInsets.all(28.0),
-      child: Wrap(children: <Widget>[
-        Container(
-            margin: EdgeInsets.only(top: 60.0),
-            child: Text('登录', style: TextStyle(fontSize: 24.0))),
-        Container(
-            padding: EdgeInsets.symmetric(horizontal: 20.0),
-            margin: EdgeInsets.only(top: 50.0, bottom: 10.0),
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(100.0),
-                border: Border.all(
-                    width: 1.0,
-                    style: BorderStyle.solid,
-                    color: Color.fromRGBO(0, 0, 0, 0.1))),
-            child: TextField(
-              onChanged: _setName,
-              style: TextStyle(fontSize: 16.0),
-              decoration: InputDecoration(
-                hintText: '请输入姓名',
-                border: InputBorder.none,
+          padding: EdgeInsets.all(30.0),
+          child: Wrap(children: <Widget>[
+            Container(
+                margin: EdgeInsets.only(top: 60.0),
+                child: Text('手机号登录',
+                    style: TextStyle(
+                        fontSize: 28.0, fontWeight: FontWeight.bold))),
+            Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.0),
+                margin: EdgeInsets.only(top: 50.0, bottom: 5.0),
+                decoration: BoxDecoration(
+                    border: Border(
+                        bottom: BorderSide(
+                            width: 1.0,
+                            style: BorderStyle.solid,
+                            color: Color(0xffeeeeee)))),
+                child: TextField(
+                  onChanged: _setName,
+                  style: TextStyle(fontSize: 18.0),
+                  decoration: InputDecoration(
+                    hintText: '请输入姓名',
+                    border: InputBorder.none,
+                  ),
+                )),
+            Container(
+              padding: EdgeInsets.only(left: 10.0),
+              margin: EdgeInsets.only(right: 5.0),
+              decoration: BoxDecoration(
+                  border: Border(
+                      bottom: BorderSide(
+                          width: 1.0,
+                          style: BorderStyle.solid,
+                          color: Color(0xffeeeeee)))),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    width: 230.0,
+                    child: TextField(
+                      onChanged: _setPhone,
+                      style: TextStyle(fontSize: 18.0),
+                      keyboardType: TextInputType.phone,
+                      decoration: InputDecoration(
+                        hintText: '请输入手机号',
+                        border: InputBorder.none,
+                      ),
+                    ),
+                  ),
+                  MaterialButton(
+                      color: Color(0xffff775d),
+                      disabledColor: Color(0x90ff775d),
+                      padding: EdgeInsets.symmetric(horizontal: 10.0),
+                      textColor: Colors.white,
+                      disabledTextColor: Colors.white,
+                      onPressed: _available ? _getCode : null,
+                      child: Text(
+                        _verifyStr,
+                        style: TextStyle(fontSize: 16.0),
+                      ),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(4.0)))
+                ],
               ),
-            )),
-        Container(
-            padding: EdgeInsets.symmetric(horizontal: 20.0),
-            margin: EdgeInsets.symmetric(vertical: 10.0),
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(100.0),
-                border: Border.all(
-                    width: 1.0,
-                    style: BorderStyle.solid,
-                    color: Color.fromRGBO(0, 0, 0, 0.1))),
-            child: TextField(
-              onChanged: _setPhone,
-              style: TextStyle(fontSize: 16.0),
-              decoration: InputDecoration(
-                hintText: '请输入手机号',
-                border: InputBorder.none,
-              ),
-            )),
-        Container(
-            padding: EdgeInsets.symmetric(horizontal: 20.0),
-            margin: EdgeInsets.symmetric(vertical: 10.0),
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(100.0),
-                border: Border.all(
-                    width: 1.0,
-                    style: BorderStyle.solid,
-                    color: Color.fromRGBO(0, 0, 0, 0.1))),
-            child: TextField(
-              onChanged: _setCode,
-              style: TextStyle(fontSize: 16.0),
-              decoration: InputDecoration(
-                hintText: '请输入验证码',
-                border: InputBorder.none,
-              ),
-            )),
-        Container(
-            width: double.infinity,
-            margin: EdgeInsets.only(top: 50.0),
-            decoration: BoxDecoration(
-                gradient: LinearGradient(
-                    colors: [Color(0xffffa192), Color(0xffff775d)]), // 渐变色
-                borderRadius: BorderRadius.circular(48.0)),
-            child: MaterialButton(
-                textColor: Colors.white,
-                height: ScreenUtil().setHeight(48.0),
-                onPressed: _activeDevice,
-                child: Text(
-                  '登录',
-                  style: TextStyle(fontSize: 20.0, letterSpacing: 16.0),
-                ),
-                shape: RoundedRectangleBorder(
-                    side: BorderSide.none,
-                    borderRadius: BorderRadius.circular(48.0)))),
-      ]),
-    ));
+            ),
+            Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.0),
+                margin: EdgeInsets.symmetric(vertical: 5.0),
+                decoration: BoxDecoration(
+                    border: Border(
+                        bottom: BorderSide(
+                            width: 1.0,
+                            style: BorderStyle.solid,
+                            color: Color(0xffeeeeee)))),
+                child: TextField(
+                  onChanged: _setCode,
+                  keyboardType: TextInputType.number,
+                  style: TextStyle(fontSize: 18.0),
+                  decoration: InputDecoration(
+                    hintText: '请输入验证码',
+                    border: InputBorder.none,
+                  ),
+                )),
+            Container(
+                width: double.infinity,
+                margin: EdgeInsets.only(top: 40.0),
+                decoration: BoxDecoration(
+                    color: Color(0xffff775d), // 渐变色
+                    borderRadius: BorderRadius.circular(48.0)),
+                child: MaterialButton(
+                    textColor: Colors.white,
+                    onPressed: _activeDevice,
+                    child: Text(
+                      '登录',
+                      style: TextStyle(fontSize: 20.0, letterSpacing: 12.0),
+                    ),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(48.0)))),
+          ]),
+        ));
   }
 }

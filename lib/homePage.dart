@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:wechat_kit/wechat_kit.dart';
 import 'package:alipay_kit/alipay_kit.dart';
@@ -65,9 +66,61 @@ class HomePageState extends State<HomePage> {
     print('支付宝支付--$content');
   }
 
-  void _enter(String type) {
-    Navigator.push(
-        context, MaterialPageRoute(builder: (context) => QuestionPage(type: type)));
+  void _enter(context, String type) {
+    showModalBottomSheet(
+        context: context,
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20.0),
+        ),
+        builder: (BuildContext context) {
+          return Container(
+            height: 300,
+            child: Column(
+              children: [
+                Container(
+                  margin: EdgeInsets.only(top: 20.0, bottom: 40.0),
+                  child: Center(
+                      child: Text(
+                    '选择支付方式',
+                    style:
+                        TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
+                  )),
+                ),
+                Container(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      const Text('绿色区域一个Bottom Sheet'),
+                      Container(
+                          width: 240.0,
+                          margin: EdgeInsets.only(top: 40.0),
+                          decoration: BoxDecoration(
+                              color: Color(0xffff775d), // 渐变色
+                              borderRadius: BorderRadius.circular(48.0)),
+                          child: MaterialButton(
+                              textColor: Colors.white,
+                              onPressed: () => _jump(type),
+                              child: Text(
+                                '立即支付',
+                                style: TextStyle(
+                                    fontSize: 20.0),
+                              ),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(48.0))))
+                    ],
+                  ),
+                )
+              ],
+            ),
+          );
+        });
+  }
+
+  void _jump(String type) {
+    Navigator.push(context,
+        MaterialPageRoute(builder: (context) => QuestionPage(type: type)));
   }
 
   _handleWechatPay() async {
@@ -106,9 +159,7 @@ class HomePageState extends State<HomePage> {
     };
     _alipayInstance.payOrderJson(
       orderInfo: jsonEncode(orderInfo),
-      signType: _ALIPAY_USE_RSA2
-          ? Alipay.SIGNTYPE_RSA2
-          : Alipay.SIGNTYPE_RSA,
+      signType: _ALIPAY_USE_RSA2 ? Alipay.SIGNTYPE_RSA2 : Alipay.SIGNTYPE_RSA,
       privateKey: _ALIPAY_PRIVATEKEY,
     );
   }
@@ -119,7 +170,7 @@ class HomePageState extends State<HomePage> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         GestureDetector(
-          onTap: () => _enter('A'),
+          onTap: () => _enter(context, 'A'),
           child: Container(
               width: 150.0,
               height: 60.0,
@@ -136,7 +187,7 @@ class HomePageState extends State<HomePage> {
                   style: TextStyle(fontSize: 20.0, color: Colors.white))),
         ),
         GestureDetector(
-          onTap: () => _enter('C'),
+          onTap: () => _enter(context, 'C'),
           child: Container(
               width: 150.0,
               height: 60.0,
@@ -144,12 +195,12 @@ class HomePageState extends State<HomePage> {
               alignment: Alignment.center,
               decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10.0),
-                  color:  Color(0xffff775d),
+                  color: Color(0xffff775d),
                   border: Border.all(
                       width: 1.0,
                       style: BorderStyle.solid,
                       color: Color.fromRGBO(0, 0, 0, 0.1))),
-                child: Text('C1模拟考试',
+              child: Text('C1模拟考试',
                   style: TextStyle(fontSize: 20.0, color: Colors.white))),
         )
       ],
