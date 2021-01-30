@@ -30,6 +30,7 @@ class HomePage extends StatefulWidget {
 }
 
 class HomePageState extends State<HomePage> {
+  String _payType = 'wePay';
   Wechat _wechatInstance = Wechat()
     ..registerApp(
       appId: WECHAT_APPID,
@@ -66,59 +67,127 @@ class HomePageState extends State<HomePage> {
     print('支付宝支付--$content');
   }
 
-  void _enter(context, String type) {
-    showModalBottomSheet(
+  void _showModal(String type) {
+    Future<void> future = showModalBottomSheet(
         context: context,
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20.0),
+          borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20.0), topRight: Radius.circular(20.0)),
         ),
         builder: (BuildContext context) {
-          return Container(
-            height: 300,
-            child: Column(
-              children: [
-                Container(
-                  margin: EdgeInsets.only(top: 20.0, bottom: 40.0),
-                  child: Center(
-                      child: Text(
-                    '选择支付方式',
-                    style:
-                        TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
-                  )),
-                ),
-                Container(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      const Text('绿色区域一个Bottom Sheet'),
-                      Container(
-                          width: 240.0,
-                          margin: EdgeInsets.only(top: 40.0),
-                          decoration: BoxDecoration(
-                              color: Color(0xffff775d), // 渐变色
-                              borderRadius: BorderRadius.circular(48.0)),
-                          child: MaterialButton(
-                              textColor: Colors.white,
-                              onPressed: () => _jump(type),
-                              child: Text(
-                                '立即支付',
-                                style: TextStyle(
-                                    fontSize: 20.0),
-                              ),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(48.0))))
-                    ],
+          return StatefulBuilder(builder: (context, _setState) {
+            return Container(
+              height: 320,
+              child: Column(
+                children: [
+                  Container(
+                    margin: EdgeInsets.only(top: 16.0, bottom: 8.0),
+                    child: Center(
+                        child: Text(
+                      '选择支付方式',
+                      style: TextStyle(
+                          fontSize: 20.0, fontWeight: FontWeight.bold),
+                    )),
                   ),
-                )
-              ],
-            ),
-          );
+                  Container(
+                    margin: EdgeInsets.only(bottom: 10.0),
+                    child: Text(
+                      '使用模拟考试需要支付50元，请先支付',
+                      style: TextStyle(fontSize: 16.0, color: Colors.grey),
+                    ),
+                  ),
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 10.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Container(
+                          child: Column(
+                            children: [
+                              Container(
+                                margin: EdgeInsets.symmetric(vertical: 5.0),
+                                child: RadioListTile(
+                                  value: 'wePay',
+                                  title: Text('微信支付',
+                                      style: TextStyle(fontSize: 20.0)),
+                                  activeColor: Color(0xffff775d),
+                                  secondary: Image.asset(
+                                      'assets/images/WePayLogo.png',
+                                      width: 36),
+                                  controlAffinity:
+                                      ListTileControlAffinity.trailing,
+                                  groupValue: _payType,
+                                  onChanged: (value) {
+                                    _setState(() {
+                                      _payType = value;
+                                    });
+                                  },
+                                ),
+                              ),
+                              Container(
+                                margin: EdgeInsets.symmetric(vertical: 5.0),
+                                child: RadioListTile(
+                                  value: 'aliPay',
+                                  title: Text('支付宝',
+                                      style: TextStyle(fontSize: 20.0)),
+                                  activeColor: Color(0xffff775d),
+                                  secondary: Image.asset(
+                                      'assets/images/AliPayLogo.png',
+                                      width: 36),
+                                  controlAffinity:
+                                      ListTileControlAffinity.trailing,
+                                  groupValue: _payType,
+                                  onChanged: (value) {
+                                    _setState(() {
+                                      _payType = value;
+                                    });
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                            width: 300.0,
+                            margin: EdgeInsets.only(top: 30.0),
+                            decoration: BoxDecoration(
+                                color: Color(0xffff775d), // 渐变色
+                                borderRadius: BorderRadius.circular(48.0)),
+                            child: MaterialButton(
+                                textColor: Colors.white,
+                                onPressed: () => _payAction(type),
+                                child: Text(
+                                  '立即支付',
+                                  style: TextStyle(fontSize: 20.0),
+                                ),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(48.0))))
+                      ],
+                    ),
+                  )
+                ],
+              ),
+            );
+          });
         });
+    future.then((value) {
+      setState(() {
+        _payType = 'wePay';
+      });
+    });
   }
 
-  void _jump(String type) {
+  Future _payAction(String type) async {
+    var payMethod;
+    if (_payType == 'wePay') {
+      payMethod = _handleWechatPay;
+    } else {
+      payMethod = _handleAliPay;
+    }
+    await payMethod();
+    Navigator.of(context).pop();
     Navigator.push(context,
         MaterialPageRoute(builder: (context) => QuestionPage(type: type)));
   }
@@ -170,7 +239,7 @@ class HomePageState extends State<HomePage> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         GestureDetector(
-          onTap: () => _enter(context, 'A'),
+          onTap: () => _showModal('A'),
           child: Container(
               width: 150.0,
               height: 60.0,
@@ -187,7 +256,7 @@ class HomePageState extends State<HomePage> {
                   style: TextStyle(fontSize: 20.0, color: Colors.white))),
         ),
         GestureDetector(
-          onTap: () => _enter(context, 'C'),
+          onTap: () => _showModal('C'),
           child: Container(
               width: 150.0,
               height: 60.0,
