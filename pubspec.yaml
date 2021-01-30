@@ -55,6 +55,8 @@ flutter:
   assets:
 #     - images/a_dot_burr.jpeg
     - assets/images/logo.png
+    - assets/images/WePayLogo.png
+    - assets/images/AliPayLogo.png
     - assets/json/questions.json
     - assets/json/questions2.json
 
