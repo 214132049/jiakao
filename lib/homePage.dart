@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:intl/intl.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:wechat_kit/wechat_kit.dart';
 import 'package:alipay_kit/alipay_kit.dart';
 
+import 'deviceUtil.dart';
 import 'questionPage.dart';
 
 // 微信
@@ -15,10 +17,7 @@ const String WECHAT_APPSECRET = 'your wechat appSecret';
 const String WECHAT_MINIAPPID = 'your wechat miniAppId';
 
 // 支付宝
-const bool _ALIPAY_USE_RSA2 = true;
-const String _ALIPAY_APPID = 'your alipay appId'; // 支付/登录
-const String _ALIPAY_PID = 'your alipay pid'; // 登录
-const String _ALIPAY_TARGETID = 'your alipay targetId'; // 登录
+const String _ALIPAY_APPID = '2016102200741044'; // 支付/登录
 const String _ALIPAY_PRIVATEKEY =
     'your alipay rsa private key(pkcs1/pkcs8)'; // 支付/登录
 
@@ -30,6 +29,7 @@ class HomePage extends StatefulWidget {
 }
 
 class HomePageState extends State<HomePage> {
+  final deviceInfo = DeviceInfo();
   String _payType = 'wePay';
   Wechat _wechatInstance = Wechat()
     ..registerApp(
@@ -107,25 +107,28 @@ class HomePageState extends State<HomePage> {
   _handleAliPay() async {
     var content = await _alipayInstance.isInstalled();
     print('支付宝安装--$content');
+    String androidId = await deviceInfo.getDeviceInfo();
+    final formatter = new DateFormat('yyyy-MM-dd HH:mm:ss');
+    DateTime now = new DateTime.now();
+    int timestamp = now.millisecondsSinceEpoch;
     Map<String, dynamic> bizContent = <String, dynamic>{
       'timeout_express': '30m',
       'product_code': 'QUICK_MSECURITY_PAY',
-      'total_amount': '0.01',
-      'subject': '1',
-      'body': '我是测试数据',
-      'out_trade_no': '123456789',
+      'total_amount': '50',
+      'subject': '试题',
+      'out_trade_no': '$androidId$timestamp',
     };
     Map<String, dynamic> orderInfo = <String, dynamic>{
       'app_id': _ALIPAY_APPID,
-      'biz_content': json.encode(bizContent),
+      'biz_content': jsonEncode(bizContent),
       'charset': 'utf-8',
       'method': 'alipay.trade.app.pay',
-      'timestamp': '2016-07-29 16:55:53',
+      'timestamp': formatter.format(now),
       'version': '1.0',
     };
     _alipayInstance.payOrderJson(
       orderInfo: jsonEncode(orderInfo),
-      signType: _ALIPAY_USE_RSA2 ? Alipay.SIGNTYPE_RSA2 : Alipay.SIGNTYPE_RSA,
+      signType: Alipay.SIGNTYPE_RSA2,
       privateKey: _ALIPAY_PRIVATEKEY,
     );
   }
