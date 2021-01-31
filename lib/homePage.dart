@@ -68,110 +68,7 @@ class HomePageState extends State<HomePage> {
   }
 
   void _showModal(String type) {
-    Future<void> future = showModalBottomSheet(
-        context: context,
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(20.0), topRight: Radius.circular(20.0)),
-        ),
-        builder: (BuildContext context) {
-          return StatefulBuilder(builder: (context, _setState) {
-            return Container(
-              height: 320,
-              child: Column(
-                children: [
-                  Container(
-                    margin: EdgeInsets.only(top: 16.0, bottom: 8.0),
-                    child: Center(
-                        child: Text(
-                      '选择支付方式',
-                      style: TextStyle(
-                          fontSize: 20.0, fontWeight: FontWeight.bold),
-                    )),
-                  ),
-                  Container(
-                    margin: EdgeInsets.only(bottom: 10.0),
-                    child: Text(
-                      '使用模拟考试需要支付50元，请先支付',
-                      style: TextStyle(fontSize: 16.0, color: Colors.grey),
-                    ),
-                  ),
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 10.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        Container(
-                          child: Column(
-                            children: [
-                              Container(
-                                margin: EdgeInsets.symmetric(vertical: 5.0),
-                                child: RadioListTile(
-                                  value: 'wePay',
-                                  title: Text('微信支付',
-                                      style: TextStyle(fontSize: 20.0)),
-                                  activeColor: Color(0xffff775d),
-                                  secondary: Image.asset(
-                                      'assets/images/WePayLogo.png',
-                                      width: 36),
-                                  controlAffinity:
-                                      ListTileControlAffinity.trailing,
-                                  groupValue: _payType,
-                                  onChanged: (value) {
-                                    _setState(() {
-                                      _payType = value;
-                                    });
-                                  },
-                                ),
-                              ),
-                              Container(
-                                margin: EdgeInsets.symmetric(vertical: 5.0),
-                                child: RadioListTile(
-                                  value: 'aliPay',
-                                  title: Text('支付宝',
-                                      style: TextStyle(fontSize: 20.0)),
-                                  activeColor: Color(0xffff775d),
-                                  secondary: Image.asset(
-                                      'assets/images/AliPayLogo.png',
-                                      width: 36),
-                                  controlAffinity:
-                                      ListTileControlAffinity.trailing,
-                                  groupValue: _payType,
-                                  onChanged: (value) {
-                                    _setState(() {
-                                      _payType = value;
-                                    });
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Container(
-                            width: 300.0,
-                            margin: EdgeInsets.only(top: 30.0),
-                            decoration: BoxDecoration(
-                                color: Color(0xffff775d), // 渐变色
-                                borderRadius: BorderRadius.circular(48.0)),
-                            child: MaterialButton(
-                                textColor: Colors.white,
-                                onPressed: () => _payAction(type),
-                                child: Text(
-                                  '立即支付',
-                                  style: TextStyle(fontSize: 20.0),
-                                ),
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(48.0))))
-                      ],
-                    ),
-                  )
-                ],
-              ),
-            );
-          });
-        });
+    Future<void> future = _showBottomSheet(type);
     future.then((value) {
       setState(() {
         _payType = 'wePay';
@@ -231,6 +128,113 @@ class HomePageState extends State<HomePage> {
       signType: _ALIPAY_USE_RSA2 ? Alipay.SIGNTYPE_RSA2 : Alipay.SIGNTYPE_RSA,
       privateKey: _ALIPAY_PRIVATEKEY,
     );
+  }
+
+  _showBottomSheet(type) {
+    return showModalBottomSheet(
+        context: context,
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20.0), topRight: Radius.circular(20.0)),
+        ),
+        builder: (BuildContext context) {
+          return StatefulBuilder(builder: (context, _setState) {
+            return Container(
+              height: 320,
+              child: Column(
+                children: [
+                  Container(
+                    margin: EdgeInsets.only(top: 16.0, bottom: 8.0),
+                    child: Center(
+                        child: Text(
+                          '选择支付方式',
+                          style: TextStyle(
+                              fontSize: 20.0, fontWeight: FontWeight.bold),
+                        )),
+                  ),
+                  Container(
+                    margin: EdgeInsets.only(bottom: 10.0),
+                    child: Text(
+                      '使用模拟考试需要支付50元，请先支付',
+                      style: TextStyle(fontSize: 16.0, color: Colors.grey),
+                    ),
+                  ),
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 10.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Container(
+                          child: Column(
+                            children: [
+                              Container(
+                                margin: EdgeInsets.symmetric(vertical: 5.0),
+                                child: RadioListTile(
+                                  value: 'wePay',
+                                  title: Text('微信支付',
+                                      style: TextStyle(fontSize: 20.0)),
+                                  activeColor: Color(0xffff775d),
+                                  secondary: Image.asset(
+                                      'assets/images/WePayLogo.png',
+                                      width: 36),
+                                  controlAffinity:
+                                  ListTileControlAffinity.trailing,
+                                  groupValue: _payType,
+                                  onChanged: (value) {
+                                    _setState(() {
+                                      _payType = value;
+                                    });
+                                  },
+                                ),
+                              ),
+                              Container(
+                                margin: EdgeInsets.symmetric(vertical: 5.0),
+                                child: RadioListTile(
+                                  value: 'aliPay',
+                                  title: Text('支付宝',
+                                      style: TextStyle(fontSize: 20.0)),
+                                  activeColor: Color(0xffff775d),
+                                  secondary: Image.asset(
+                                      'assets/images/AliPayLogo.png',
+                                      width: 36),
+                                  controlAffinity:
+                                  ListTileControlAffinity.trailing,
+                                  groupValue: _payType,
+                                  onChanged: (value) {
+                                    _setState(() {
+                                      _payType = value;
+                                    });
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                            width: 300.0,
+                            margin: EdgeInsets.only(top: 30.0),
+                            decoration: BoxDecoration(
+                                color: Color(0xffff775d), // 渐变色
+                                borderRadius: BorderRadius.circular(48.0)),
+                            child: MaterialButton(
+                                textColor: Colors.white,
+                                onPressed: () => _payAction(type),
+                                child: Text(
+                                  '立即支付',
+                                  style: TextStyle(fontSize: 20.0),
+                                ),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(48.0))))
+                      ],
+                    ),
+                  )
+                ],
+              ),
+            );
+          });
+        });
   }
 
   @override
