@@ -2,11 +2,11 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
+import 'constants.dart';
 import 'deviceUtil.dart';
 import 'homePage.dart';
 
@@ -21,7 +21,6 @@ class LoginPageState extends State<LoginPage> {
   String _name = '';
   String _phone = '';
   String _code = '';
-  String host = 'http://47.103.79.180:80';
   final deviceInfo = DeviceInfo();
   SharedPreferences _prefs;
   Timer _timer;
@@ -80,7 +79,7 @@ class LoginPageState extends State<LoginPage> {
     String androidId = await deviceInfo.getDeviceInfo();
     try {
       EasyLoading.show(status: '初始化中');
-      var url = '$host/api/check';
+      var url = '$apiHost/api/check';
       var response = await http.post(url,
           body: {'deviceId': androidId}).timeout(Duration(seconds: 30));
       if (response.statusCode != 200) {
@@ -118,7 +117,7 @@ class LoginPageState extends State<LoginPage> {
     String androidId = await deviceInfo.getDeviceInfo();
     _jumpPage();
     try {
-      var url = '$host/api/active';
+      var url = '$apiHost/api/active';
       var response = await http.post(url, body: {
         'code': _code,
         'deviceId': androidId

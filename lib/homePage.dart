@@ -1,12 +1,13 @@
 import 'dart:async';
-import 'dart:convert';
 
-import 'package:intl/intl.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:fluwx/fluwx.dart' as fluwx;
 import 'package:tobias/tobias.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 
+import 'constants.dart';
 import 'deviceUtil.dart';
 import 'questionPage.dart';
 
@@ -20,11 +21,12 @@ class HomePage extends StatefulWidget {
 class HomePageState extends State<HomePage> {
   final deviceInfo = DeviceInfo();
   String _payType = 'wePay';
+  bool _supportWx = true;
 
   @override
   initState() {
     super.initState();
-    isAliPayInstalled().then((data){
+    isAliPayInstalled().then((data) {
       print("installed $data");
     });
     _initFluwx();
@@ -34,16 +36,16 @@ class HomePageState extends State<HomePage> {
     await fluwx.registerWxApi(
         appId: "wxd930ea5d5a258f4f",
         doOnAndroid: true,
-        doOnIOS: true,
-        universalLink: "https://your.univerallink.com/link/");
-    var result = await fluwx.isWeChatInstalled;
-    print("is installed $result");
-    String _result;
+        doOnIOS: false,
+        universalLink: "");
+    _supportWx = await fluwx.isWeChatInstalled;
+    print("wx is installed $_supportWx");
     fluwx.weChatResponseEventHandler.listen((res) {
       if (res is fluwx.WeChatPaymentResponse) {
-        setState(() {
-          _result = "pay :${res.isSuccessful}";
-        });
+        print("wxPay :${res.isSuccessful}");
+        _showPayResult(true);
+      } else {
+        _showPayResult(false);
       }
     });
   }
@@ -60,7 +62,7 @@ class HomePageState extends State<HomePage> {
   Future _payAction(String type) async {
     var payMethod;
     if (_payType == 'wePay') {
-      payMethod = _handleWechatPay;
+      payMethod = _handleWxPay;
     } else {
       payMethod = _handleAliPay;
     }
@@ -70,9 +72,13 @@ class HomePageState extends State<HomePage> {
         MaterialPageRoute(builder: (context) => QuestionPage(type: type)));
   }
 
-  _handleWechatPay() async {
-    Map result;
-    fluwx.payWithWeChat(
+  _handleWxPay() async {
+    if (!_supportWx) {
+      EasyLoading.showToast('请先安装微信客户端');
+      return;
+    }
+    Map result = await _getOrderInfo(true);
+    var data = await fluwx.payWithWeChat(
       appId: result['appid'].toString(),
       partnerId: result['partnerid'].toString(),
       prepayId: result['prepayid'].toString(),
@@ -80,27 +86,36 @@ class HomePageState extends State<HomePage> {
       nonceStr: result['noncestr'].toString(),
       timeStamp: result['timestamp'],
       sign: result['sign'].toString(),
-    )
-        .then((data) {
-      print("---》$data");
-    });
+    );
+    print("---》$data");
   }
 
   _handleAliPay() async {
     Map payResult;
-    Map _payResult;
-    String _payInfo;
+    String _payInfo = await _getOrderInfo(false);
     try {
       print("The pay info is : " + _payInfo);
       payResult = await aliPay(_payInfo);
       print("--->$payResult");
+      _showPayResult(true);
     } on Exception catch (e) {
       payResult = {};
+      _showPayResult(false);
     }
+  }
 
-    setState(() {
-      _payResult = payResult;
-    });
+  _getOrderInfo(bool isWx) async {
+    var url =
+        isWx ? '$apiHost/api/getWxOrderInfo' : '$apiHost/api/getAliOrderInfo';
+    return await http.post(url);
+  }
+
+  _showPayResult(bool success) {
+    if (success) {
+      EasyLoading.showToast('支付成功');
+    } else {
+      EasyLoading.showToast('支付失败');
+    }
   }
 
   _showBottomSheet(type) {
@@ -121,10 +136,10 @@ class HomePageState extends State<HomePage> {
                     margin: EdgeInsets.only(top: 16.0, bottom: 8.0),
                     child: Center(
                         child: Text(
-                          '选择支付方式',
-                          style: TextStyle(
-                              fontSize: 20.0, fontWeight: FontWeight.bold),
-                        )),
+                      '选择支付方式',
+                      style: TextStyle(
+                          fontSize: 20.0, fontWeight: FontWeight.bold),
+                    )),
                   ),
                   Container(
                     margin: EdgeInsets.only(bottom: 10.0),
@@ -153,7 +168,7 @@ class HomePageState extends State<HomePage> {
                                       'assets/images/WePayLogo.png',
                                       width: 36),
                                   controlAffinity:
-                                  ListTileControlAffinity.trailing,
+                                      ListTileControlAffinity.trailing,
                                   groupValue: _payType,
                                   onChanged: (value) {
                                     _setState(() {
@@ -173,7 +188,7 @@ class HomePageState extends State<HomePage> {
                                       'assets/images/AliPayLogo.png',
                                       width: 36),
                                   controlAffinity:
-                                  ListTileControlAffinity.trailing,
+                                      ListTileControlAffinity.trailing,
                                   groupValue: _payType,
                                   onChanged: (value) {
                                     _setState(() {
