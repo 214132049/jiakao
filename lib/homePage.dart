@@ -4,22 +4,11 @@ import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:wechat_kit/wechat_kit.dart';
-import 'package:alipay_kit/alipay_kit.dart';
+import 'package:fluwx/fluwx.dart' as fluwx;
+import 'package:tobias/tobias.dart';
 
 import 'deviceUtil.dart';
 import 'questionPage.dart';
-
-// 微信
-const String WECHAT_APPID = 'your wechat appId';
-const String WECHAT_UNIVERSAL_LINK = 'your wechat universal link'; // iOS 请配置
-const String WECHAT_APPSECRET = 'your wechat appSecret';
-const String WECHAT_MINIAPPID = 'your wechat miniAppId';
-
-// 支付宝
-const String _ALIPAY_APPID = '2016102200741044'; // 支付/登录
-const String _ALIPAY_PRIVATEKEY =
-    'your alipay rsa private key(pkcs1/pkcs8)'; // 支付/登录
 
 class HomePage extends StatefulWidget {
   HomePage({Key key}) : super(key: key);
@@ -31,40 +20,32 @@ class HomePage extends StatefulWidget {
 class HomePageState extends State<HomePage> {
   final deviceInfo = DeviceInfo();
   String _payType = 'wePay';
-  Wechat _wechatInstance = Wechat()
-    ..registerApp(
-      appId: WECHAT_APPID,
-      universalLink: WECHAT_UNIVERSAL_LINK,
-    );
-  Alipay _alipayInstance = Alipay();
-
-  StreamSubscription<WechatPayResp> _wechatPayListen;
-  StreamSubscription<AlipayResp> _aliPayListen;
 
   @override
-  void initState() {
+  initState() {
     super.initState();
-    _wechatPayListen = _wechatInstance.payResp().listen(_listenWeChatPay);
-    _aliPayListen = _alipayInstance.payResp().listen(_listenAliPay);
+    isAliPayInstalled().then((data){
+      print("installed $data");
+    });
+    _initFluwx();
   }
 
-  @override
-  void dispose() {
-    _wechatPayListen?.cancel();
-    _wechatPayListen = null;
-    _aliPayListen?.cancel();
-    _aliPayListen = null;
-    super.dispose();
-  }
-
-  void _listenWeChatPay(WechatPayResp resp) {
-    String content = 'pay: ${resp.errorCode} ${resp.errorMsg}';
-    print('微信支付--$content');
-  }
-
-  void _listenAliPay(AlipayResp resp) {
-    String content = 'pay: ${resp.resultStatus} - ${resp.result}';
-    print('支付宝支付--$content');
+  _initFluwx() async {
+    await fluwx.registerWxApi(
+        appId: "wxd930ea5d5a258f4f",
+        doOnAndroid: true,
+        doOnIOS: true,
+        universalLink: "https://your.univerallink.com/link/");
+    var result = await fluwx.isWeChatInstalled;
+    print("is installed $result");
+    String _result;
+    fluwx.weChatResponseEventHandler.listen((res) {
+      if (res is fluwx.WeChatPaymentResponse) {
+        setState(() {
+          _result = "pay :${res.isSuccessful}";
+        });
+      }
+    });
   }
 
   void _showModal(String type) {
@@ -90,47 +71,36 @@ class HomePageState extends State<HomePage> {
   }
 
   _handleWechatPay() async {
-    // await _wechat.isSupportApi()
-    var content = await _wechatInstance.isInstalled();
-    print('微信安装--$content');
-    _wechatInstance.pay(
-      appId: WECHAT_APPID,
-      partnerId: '商户号',
-      prepayId: '预支付交易会话ID',
-      package: '扩展字段,暂填写固定值：Sign=WXPay',
-      nonceStr: '随机字符串, 随机字符串，不长于32位',
-      timeStamp: '时间戳：东八区，单位秒',
-      sign: '签名',
-    );
+    Map result;
+    fluwx.payWithWeChat(
+      appId: result['appid'].toString(),
+      partnerId: result['partnerid'].toString(),
+      prepayId: result['prepayid'].toString(),
+      packageValue: result['package'].toString(),
+      nonceStr: result['noncestr'].toString(),
+      timeStamp: result['timestamp'],
+      sign: result['sign'].toString(),
+    )
+        .then((data) {
+      print("---》$data");
+    });
   }
 
   _handleAliPay() async {
-    var content = await _alipayInstance.isInstalled();
-    print('支付宝安装--$content');
-    String androidId = await deviceInfo.getDeviceInfo();
-    final formatter = new DateFormat('yyyy-MM-dd HH:mm:ss');
-    DateTime now = new DateTime.now();
-    int timestamp = now.millisecondsSinceEpoch;
-    Map<String, dynamic> bizContent = <String, dynamic>{
-      'timeout_express': '30m',
-      'product_code': 'QUICK_MSECURITY_PAY',
-      'total_amount': '50',
-      'subject': '试题',
-      'out_trade_no': '$androidId$timestamp',
-    };
-    Map<String, dynamic> orderInfo = <String, dynamic>{
-      'app_id': _ALIPAY_APPID,
-      'biz_content': jsonEncode(bizContent),
-      'charset': 'utf-8',
-      'method': 'alipay.trade.app.pay',
-      'timestamp': formatter.format(now),
-      'version': '1.0',
-    };
-    _alipayInstance.payOrderJson(
-      orderInfo: jsonEncode(orderInfo),
-      signType: Alipay.SIGNTYPE_RSA2,
-      privateKey: _ALIPAY_PRIVATEKEY,
-    );
+    Map payResult;
+    Map _payResult;
+    String _payInfo;
+    try {
+      print("The pay info is : " + _payInfo);
+      payResult = await aliPay(_payInfo);
+      print("--->$payResult");
+    } on Exception catch (e) {
+      payResult = {};
+    }
+
+    setState(() {
+      _payResult = payResult;
+    });
   }
 
   _showBottomSheet(type) {

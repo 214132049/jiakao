@@ -33,8 +33,8 @@ dependencies:
   flutter_easyloading: ^2.2.2
   shared_preferences: ^0.5.12+4
   http: ^0.12.2
-  alipay_kit: ^1.1.0
-  wechat_kit: ^1.1.2
+  tobias: ^1.7.1+3
+  fluwx: ^2.5.0+1
 
 dev_dependencies:
   flutter_test:
