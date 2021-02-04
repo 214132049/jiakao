@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -35,12 +36,27 @@ class LoginPageState extends State<LoginPage> {
   }
 
   Future _getCode() async {
-    if (!_available) {
-      return;
+    try {
+      if (!_available) {
+        return;
+      }
+      _seconds = _countdown;
+      var url = '$apiHost/api/getVerifyCode';
+      var response = await http
+          .post(url, body: {'phone': _phone}).timeout(Duration(seconds: 30));
+      if (response.statusCode != 200) {
+        throw Error.safeToString('获取失败');
+      }
+      var data = jsonDecode(response.body);
+      if (data['code'] != 1) {
+        throw Error.safeToString(data['message']);
+      }
+      _startTimer();
+    } catch (exception) {
+      if (exception is String) {
+        EasyLoading.showError(exception.replaceAll('"', ''));
+      }
     }
-    _seconds = _countdown;
-    _startTimer();
-    print('21');
   }
 
   void _startTimer() {
@@ -117,8 +133,10 @@ class LoginPageState extends State<LoginPage> {
     String androidId = await deviceInfo.getDeviceInfo();
     _jumpPage();
     try {
-      var url = '$apiHost/api/active';
+      var url = '$apiHost/api/login';
       var response = await http.post(url, body: {
+        'name': _name,
+        'phone': _phone,
         'code': _code,
         'deviceId': androidId
       }).timeout(Duration(seconds: 30));
@@ -224,6 +242,10 @@ class LoginPageState extends State<LoginPage> {
                         hintText: '请输入手机号',
                         border: InputBorder.none,
                       ),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,//只允许输入数字
+                        LengthLimitingTextInputFormatter(11)
+                      ]
                     ),
                   ),
                   MaterialButton(
@@ -259,6 +281,10 @@ class LoginPageState extends State<LoginPage> {
                     hintText: '请输入验证码',
                     border: InputBorder.none,
                   ),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,//只允许输入数字
+                    LengthLimitingTextInputFormatter(6)
+                  ]
                 )),
             Container(
                 width: double.infinity,
