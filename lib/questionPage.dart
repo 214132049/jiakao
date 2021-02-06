@@ -4,9 +4,12 @@ import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:chips_choice/chips_choice.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 
+import 'constants.dart';
+import 'deviceUtil.dart';
 import 'result.dart';
 import 'chip.dart';
 import 'transferData.dart';
@@ -71,11 +74,8 @@ class QuestionState extends State<QuestionPage> {
   List<String> answersEnum = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
   Map<int, String> questionTypes = {1: '单选题', 2: '判断题', 3: '多选题'};
   Questions questions = Questions.fromJson([]);
+  final deviceInfo = DeviceInfo();
   bool isReview = false;
-  final pathMap = const {
-    'A': 'assets/json/questions.json',
-    'C': 'assets/json/questions2.json'
-  };
   String _type;
 
   QuestionState(type) {
@@ -93,22 +93,42 @@ class QuestionState extends State<QuestionPage> {
   }
 
   Future<Questions> loadQuestionJson() async {
-    String path = pathMap[_type];
-    String json = await rootBundle.loadString(path);
-    List<dynamic> listJson = jsonDecode(json);
-    var rng = new Random();
-    var realList = [];
-    for (var i = 0; i < 100; i++) {
-      var rngIndex = rng.nextInt(listJson.length);
-      realList.add(listJson[rngIndex]);
+    try {
+      String androidId = await deviceInfo.getDeviceInfo();
+      var url = '$apiHost/api/getQuestions';
+      var response = await http.post(url, body: {
+        'type': _type,
+        'deviceId': androidId
+      }).timeout(Duration(seconds: 30));
+      if (response.statusCode != 200) {
+        throw Error.safeToString('请求异常');
+      }
+      var data = jsonDecode(response.body);
+      if (data['code'] != 1) {
+        throw Error.safeToString(data['message']);
+      }
+      List<dynamic> listJson = jsonDecode(data.data);
+      var rng = new Random();
+      var realList = [];
+      for (var i = 0; i < 100; i++) {
+        var rngIndex = rng.nextInt(listJson.length);
+        realList.add(listJson[rngIndex]);
+      }
+      // realList.sort(
+      //     (left, right) => left['questionType'].compareTo(right['questionType']));
+      Questions questionList = Questions.fromJson(realList);
+      for (Question question in questionList.questions) {
+        question.userAnswer = '';
+      }
+      return questionList;
+    } catch (exception) {
+      if (exception is String) {
+        EasyLoading.showError(exception.replaceAll('"', ''));
+      }
+      return Questions.fromJson([]);
+    } finally {
+      EasyLoading.dismiss();
     }
-    // realList.sort(
-    //     (left, right) => left['questionType'].compareTo(right['questionType']));
-    Questions questionList = Questions.fromJson(realList);
-    for (Question question in questionList.questions) {
-      question.userAnswer = '';
-    }
-    return questionList;
   }
 
   _submit() {
