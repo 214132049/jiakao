@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:fluwx/fluwx.dart' as fluwx;
 import 'package:tobias/tobias.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 
 import 'constants.dart';
@@ -22,16 +23,16 @@ class HomePage extends StatefulWidget {
 class HomePageState extends State<HomePage> {
   final deviceInfo = DeviceInfo();
   String _payType = 'wePay';
-  bool _wxInstalled = true;
-  bool _aliInstalled = true;
+  SharedPreferences _prefs;
 
   @override
   initState() {
     super.initState();
-    _initPay();
+    _init();
   }
 
-  _initPay() async {
+  _init() async {
+    _prefs = await SharedPreferences.getInstance();
     await fluwx.registerWxApi(
         appId: "wxd930ea5d5a258f4f",
         doOnAndroid: true,
@@ -45,12 +46,14 @@ class HomePageState extends State<HomePage> {
         _showPayResult(false);
       }
     });
-    _aliInstalled = await isAliPayInstalled();
-    _wxInstalled = await fluwx.isWeChatInstalled;
-    print("wx is installed $_wxInstalled");
   }
 
   void _showModal(String type) {
+    int status = _prefs?.getInt('deviceStatus');
+    if (status == 2) {
+      _jumpPage(type);
+      return;
+    }
     Future<void> future = _showBottomSheet(type);
     future.then((value) {
       setState(() {
@@ -68,15 +71,13 @@ class HomePageState extends State<HomePage> {
     }
     try {
       await payMethod();
-      Navigator.of(context).pop();
-      Timer(Duration(seconds: 1), () => {
-        Navigator.push(context,
-      MaterialPageRoute(builder: (context) => QuestionPage(type: type)))
-      });
+      _closeBottomSheet();
+      Timer(Duration(seconds: 1), () => {_jumpPage(type)});
     } catch (e) {}
   }
 
   _handleWxPay() async {
+    bool _wxInstalled = await fluwx.isWeChatInstalled;
     if (!_wxInstalled) {
       EasyLoading.showToast('请先安装微信客户端');
       return;
@@ -96,17 +97,23 @@ class HomePageState extends State<HomePage> {
 
   _handleAliPay() async {
     try {
-      if(!_aliInstalled) {
+      bool _aliInstalled = await isAliPayInstalled();
+      if (!_aliInstalled) {
         EasyLoading.showToast('请安装支付宝客户端');
         return;
       }
       Map payResult;
       String _payInfo = await _getOrderInfo(false);
-      print("The pay info is : " + _payInfo);
-      payResult = await aliPay(_payInfo);
-      print("--->$payResult");
-      if (payResult['resultStatus'] != 9000) {
+      payResult = await aliPay(_payInfo,
+          evn: isProd ? AliPayEvn.ONLINE : AliPayEvn.SANDBOX);
+      print('--->>>$payResult');
+      if (payResult['resultStatus'] != '9000') {
         throw Error.safeToString(payResult['memo']);
+      }
+      int status = await deviceInfo.deviceStatus();
+      print('----$status');
+      if (status != 2) {
+        throw Error.safeToString('支付失败');
       }
       _showPayResult(true);
     } catch (e) {
@@ -118,9 +125,12 @@ class HomePageState extends State<HomePage> {
   _getOrderInfo(bool isWx) async {
     try {
       EasyLoading.show(status: 'loading...');
+      String androidId = await deviceInfo.getDeviceInfo();
       var url =
           isWx ? '$apiHost/api/getWxOrderInfo' : '$apiHost/api/getAliOrderInfo';
-      var response = await http.get(url).timeout(Duration(seconds: 30));
+      var response = await http.post(url, body: {
+        'deviceId': androidId
+      }).timeout(Duration(seconds: 30));
       print(response);
       if (response.statusCode != 200) {
         throw Error();
@@ -131,7 +141,6 @@ class HomePageState extends State<HomePage> {
       }
       return data['data'];
     } catch (e) {
-      print(e);
       EasyLoading.showError('支付异常，请重试');
     } finally {
       EasyLoading.dismiss();
@@ -144,6 +153,15 @@ class HomePageState extends State<HomePage> {
     } else {
       EasyLoading.showToast('支付失败,请重试');
     }
+  }
+
+  _jumpPage(type) {
+    Navigator.push(context,
+        MaterialPageRoute(builder: (context) => QuestionPage(type: type)));
+  }
+
+  _closeBottomSheet() {
+    Navigator.of(context).pop();
   }
 
   _showBottomSheet(type) {
@@ -229,7 +247,7 @@ class HomePageState extends State<HomePage> {
                           ),
                         ),
                         Container(
-                            width: 240.0,
+                            width: 260.0,
                             margin: EdgeInsets.only(top: 30.0),
                             decoration: BoxDecoration(
                                 color: Color(0xffff775d), // 渐变色
@@ -263,7 +281,7 @@ class HomePageState extends State<HomePage> {
           child: Container(
               width: 180.0,
               height: 180.0,
-              margin: EdgeInsets.all(30.0),
+              margin: EdgeInsets.all(10.0),
               alignment: Alignment.center,
               decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10.0),
@@ -280,7 +298,7 @@ class HomePageState extends State<HomePage> {
           child: Container(
               width: 180.0,
               height: 180.0,
-              margin: EdgeInsets.all(30.0),
+              margin: EdgeInsets.all(10.0),
               alignment: Alignment.center,
               decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10.0),

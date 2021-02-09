@@ -94,6 +94,7 @@ class QuestionState extends State<QuestionPage> {
 
   Future<Questions> loadQuestionJson() async {
     try {
+      EasyLoading.show(status: '试题加载中');
       String androidId = await deviceInfo.getDeviceInfo();
       var url = '$apiHost/api/getQuestions';
       var response = await http.post(url, body: {
@@ -107,7 +108,7 @@ class QuestionState extends State<QuestionPage> {
       if (data['code'] != 1) {
         throw Error.safeToString(data['message']);
       }
-      List<dynamic> listJson = jsonDecode(data.data);
+      List<dynamic> listJson = data['data'];
       var rng = new Random();
       var realList = [];
       for (var i = 0; i < 100; i++) {
@@ -188,17 +189,14 @@ class QuestionState extends State<QuestionPage> {
                           height: 36.0,
                           margin: EdgeInsets.symmetric(horizontal: 60.0),
                           decoration: BoxDecoration(
-                              gradient: LinearGradient(colors: [
-                                Color(0xffffa192),
-                                Color(0xffff775d)
-                              ]), // 渐变色
+                              color: Color(0xffff775d), // 渐变色
                               borderRadius: BorderRadius.circular(36.0)),
                           child: MaterialButton(
                               onPressed: _submit,
                               child: Text(
                                 '交卷并查看结果',
                                 style: TextStyle(
-                                    fontSize: 16.0, color: Colors.white),
+                                    fontSize: 14.0, color: Colors.white),
                               ),
                               shape: RoundedRectangleBorder(
                                   side: BorderSide.none,
@@ -231,7 +229,7 @@ class QuestionState extends State<QuestionPage> {
                     questionTypes[question.questionType],
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 12.0,
+                      fontSize: 10.0,
                     ),
                   ),
                   decoration: BoxDecoration(

@@ -33,16 +33,16 @@ class LoginPageState extends State<LoginPage> {
 
   LoginPageState() {
     EasyLoading.instance..userInteractions = false;
-    // checkDevice();
+    _checkDevice();
   }
 
-  bool _validPhone(String phone) {
-    if (phone.trim() == '') {
+  bool _validPhone() {
+    if (_phone.trim() == '') {
       EasyLoading.showToast('请输入手机号');
       return false;
     }
     RegExp mobileReg = new RegExp(r"1[0-9]\d{9}$");
-    bool matched = mobileReg.hasMatch(phone);
+    bool matched = mobileReg.hasMatch(_phone);
     if (!matched) {
       EasyLoading.showToast('手机号不正确');
       return false;
@@ -52,19 +52,17 @@ class LoginPageState extends State<LoginPage> {
 
   Future _getCode() async {
     try {
-      if (!_available || !_validPhone(_phone)) {
+      if (!_available || !_validPhone()) {
         return;
       }
-      EasyLoading.show();
       setState(() {
         _available = false;
       });
       _seconds = _countdown;
-      var url = '$apiHost/api/getVerifyCode';
+      String url = '$apiHost/api/getVerifyCode';
       var response = await http
           .post(url, body: {'phone': _phone}).timeout(Duration(seconds: 30));
       _cookie = response.headers['set-cookie'];
-      print(_cookie);
       if (response.statusCode != 200) {
         throw Error.safeToString('获取失败');
       }
@@ -81,8 +79,6 @@ class LoginPageState extends State<LoginPage> {
       setState(() {
         _available = true;
       });
-    } finally {
-      EasyLoading.dismiss();
     }
   }
 
@@ -110,35 +106,16 @@ class LoginPageState extends State<LoginPage> {
     _timer?.cancel();
   }
 
-  Future checkDevice() async {
+  Future _checkDevice() async {
     _prefs = await SharedPreferences.getInstance();
 
-    if (_prefs.getBool('activated') ?? false) {
-      _jumpPage();
-      return;
-    }
+    int status = _prefs.getInt('deviceStatus');
 
-    String androidId = await deviceInfo.getDeviceInfo();
-    try {
-      EasyLoading.show(status: '初始化中');
-      var url = '$apiHost/api/check';
-      var response = await http.post(url,
-          body: {'deviceId': androidId}).timeout(Duration(seconds: 30));
-      if (response.statusCode != 200) {
-        throw Error.safeToString('初始化失败');
-      }
-      var data = jsonDecode(response.body);
-      if (data['code'] != 1) {
-        return;
-      }
-      _prefs.setBool('activated', true);
+    if(status == null || status == 0) {
+      status = await deviceInfo.deviceStatus();
+    }
+    if (status == 1 || status == 2) {
       _jumpPage();
-    } catch (exception) {
-      if (exception is String) {
-        EasyLoading.showError(exception.replaceAll('"', ''));
-      }
-    } finally {
-      EasyLoading.dismiss();
     }
   }
 
@@ -147,7 +124,7 @@ class LoginPageState extends State<LoginPage> {
       EasyLoading.showToast('请输入姓名');
       return;
     }
-    if (!_validPhone(_phone)) {
+    if (!_validPhone()) {
       return;
     }
     if (_code.trim() == '') {
@@ -157,7 +134,6 @@ class LoginPageState extends State<LoginPage> {
     EasyLoading.show(status: '登录中');
     String androidId = await deviceInfo.getDeviceInfo();
     try {
-      print('->>>>$_cookie');
       var url = '$apiHost/api/login';
       var response = await http.post(url, headers: {
         'cookie': _cookie
@@ -174,7 +150,7 @@ class LoginPageState extends State<LoginPage> {
       if (data['code'] != 1) {
         throw Error.safeToString(data['message']);
       }
-      _prefs.setBool('activated', true);
+      _prefs.setInt('deviceStatus', 1);
       _timer?.cancel();
       _jumpPage();
     } catch (exception) {

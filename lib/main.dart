@@ -24,6 +24,10 @@ void main() {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp, //只能纵向
+      DeviceOrientation.portraitDown,//只能纵向
+    ]);
     return ScreenUtilInit(
         designSize: Size(375, 812),
         allowFontScaling: false,

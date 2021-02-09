@@ -1,45 +1,41 @@
+import 'dart:convert';
+
+import 'package:http/http.dart' as http;
 import 'package:device_info/device_info.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+
+import 'constants.dart';
 
 class DeviceInfo {
+  static SharedPreferences _prefs;
+
   Future<String> getDeviceInfo() async {
     DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
     AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
 
-    // Map info = _readAndroidBuildData(androidInfo);
-    // print(info);
     return androidInfo.androidId;
   }
 
-  Map<String, dynamic> _readAndroidBuildData(AndroidDeviceInfo build) {
-    return <String, dynamic>{
-      'version.securityPatch': build.version.securityPatch,
-      'version.sdkInt': build.version.sdkInt,
-      'version.release': build.version.release,
-      'version.previewSdkInt': build.version.previewSdkInt,
-      'version.incremental': build.version.incremental,
-      'version.codename': build.version.codename,
-      'version.baseOS': build.version.baseOS,
-      'board': build.board,
-      'bootloader': build.bootloader,
-      'brand': build.brand,
-      'device': build.device,
-      'display': build.display,
-      'fingerprint': build.fingerprint,
-      'hardware': build.hardware,
-      'host': build.host,
-      'id': build.id,
-      'manufacturer': build.manufacturer,
-      'model': build.model,
-      'product': build.product,
-      'supported32BitAbis': build.supported32BitAbis,
-      'supported64BitAbis': build.supported64BitAbis,
-      'supportedAbis': build.supportedAbis,
-      'tags': build.tags,
-      'type': build.type,
-      'isPhysicalDevice': build.isPhysicalDevice,
-      'androidId': build.androidId,
-      'systemFeatures': build.systemFeatures,
-    };
-  }
+  /// status  0: 未激活  1:激活未支付  2:支付完成
+  Future<int> deviceStatus() async {
+    _prefs = await SharedPreferences.getInstance();
+    _prefs.setInt('deviceStatus', 0);
 
+    String androidId = await this.getDeviceInfo();
+    String url = '$apiHost/api/check';
+    var response = await http.post(url, body: {
+      'deviceId': androidId
+    }).timeout(Duration(seconds: 30));
+    if (response.statusCode != 200) {
+      throw Error.safeToString('初始化失败');
+    }
+    var data = jsonDecode(response.body);
+    var res = data['data'];
+    if (data['code'] != 1 || res == null) {
+      return 0;
+    }
+    _prefs.setInt('deviceStatus', res['status']);
+    return res['status'];
+  }
 }
