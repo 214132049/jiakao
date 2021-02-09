@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -21,25 +22,21 @@ class HomePage extends StatefulWidget {
 class HomePageState extends State<HomePage> {
   final deviceInfo = DeviceInfo();
   String _payType = 'wePay';
-  bool _supportWx = true;
+  bool _wxInstalled = true;
+  bool _aliInstalled = true;
 
   @override
   initState() {
     super.initState();
-    isAliPayInstalled().then((data) {
-      print("installed $data");
-    });
-    _initFluwx();
+    _initPay();
   }
 
-  _initFluwx() async {
+  _initPay() async {
     await fluwx.registerWxApi(
         appId: "wxd930ea5d5a258f4f",
         doOnAndroid: true,
         doOnIOS: false,
         universalLink: "");
-    _supportWx = await fluwx.isWeChatInstalled;
-    print("wx is installed $_supportWx");
     fluwx.weChatResponseEventHandler.listen((res) {
       if (res is fluwx.WeChatPaymentResponse) {
         print("wxPay :${res.isSuccessful}");
@@ -48,6 +45,9 @@ class HomePageState extends State<HomePage> {
         _showPayResult(false);
       }
     });
+    _aliInstalled = await isAliPayInstalled();
+    _wxInstalled = await fluwx.isWeChatInstalled;
+    print("wx is installed $_wxInstalled");
   }
 
   void _showModal(String type) {
@@ -66,14 +66,18 @@ class HomePageState extends State<HomePage> {
     } else {
       payMethod = _handleAliPay;
     }
-    await payMethod();
-    Navigator.of(context).pop();
-    Navigator.push(context,
-        MaterialPageRoute(builder: (context) => QuestionPage(type: type)));
+    try {
+      await payMethod();
+      Navigator.of(context).pop();
+      Timer(Duration(seconds: 1), () => {
+        Navigator.push(context,
+      MaterialPageRoute(builder: (context) => QuestionPage(type: type)))
+      });
+    } catch (e) {}
   }
 
   _handleWxPay() async {
-    if (!_supportWx) {
+    if (!_wxInstalled) {
       EasyLoading.showToast('请先安装微信客户端');
       return;
     }
@@ -91,30 +95,54 @@ class HomePageState extends State<HomePage> {
   }
 
   _handleAliPay() async {
-    Map payResult;
-    String _payInfo = await _getOrderInfo(false);
     try {
+      if(!_aliInstalled) {
+        EasyLoading.showToast('请安装支付宝客户端');
+        return;
+      }
+      Map payResult;
+      String _payInfo = await _getOrderInfo(false);
       print("The pay info is : " + _payInfo);
       payResult = await aliPay(_payInfo);
       print("--->$payResult");
+      if (payResult['resultStatus'] != 9000) {
+        throw Error.safeToString(payResult['memo']);
+      }
       _showPayResult(true);
-    } on Exception catch (e) {
-      payResult = {};
+    } catch (e) {
       _showPayResult(false);
+      throw Error();
     }
   }
 
   _getOrderInfo(bool isWx) async {
-    var url =
-        isWx ? '$apiHost/api/getWxOrderInfo' : '$apiHost/api/getAliOrderInfo';
-    return await http.post(url);
+    try {
+      EasyLoading.show(status: 'loading...');
+      var url =
+          isWx ? '$apiHost/api/getWxOrderInfo' : '$apiHost/api/getAliOrderInfo';
+      var response = await http.get(url).timeout(Duration(seconds: 30));
+      print(response);
+      if (response.statusCode != 200) {
+        throw Error();
+      }
+      var data = jsonDecode(response.body);
+      if (data['code'] != 1) {
+        throw Error();
+      }
+      return data['data'];
+    } catch (e) {
+      print(e);
+      EasyLoading.showError('支付异常，请重试');
+    } finally {
+      EasyLoading.dismiss();
+    }
   }
 
   _showPayResult(bool success) {
     if (success) {
       EasyLoading.showToast('支付成功');
     } else {
-      EasyLoading.showToast('支付失败');
+      EasyLoading.showToast('支付失败,请重试');
     }
   }
 
@@ -138,14 +166,14 @@ class HomePageState extends State<HomePage> {
                         child: Text(
                       '选择支付方式',
                       style: TextStyle(
-                          fontSize: 20.0, fontWeight: FontWeight.bold),
+                          fontSize: 18.0, fontWeight: FontWeight.bold),
                     )),
                   ),
                   Container(
                     margin: EdgeInsets.only(bottom: 10.0),
                     child: Text(
-                      '使用模拟考试需要支付50元，请先支付',
-                      style: TextStyle(fontSize: 16.0, color: Colors.grey),
+                      '需要支付50元，请先支付',
+                      style: TextStyle(fontSize: 14.0, color: Colors.grey),
                     ),
                   ),
                   Container(
@@ -162,11 +190,11 @@ class HomePageState extends State<HomePage> {
                                 child: RadioListTile(
                                   value: 'wePay',
                                   title: Text('微信支付',
-                                      style: TextStyle(fontSize: 20.0)),
+                                      style: TextStyle(fontSize: 16.0)),
                                   activeColor: Color(0xffff775d),
                                   secondary: Image.asset(
                                       'assets/images/WePayLogo.png',
-                                      width: 36),
+                                      width: 32),
                                   controlAffinity:
                                       ListTileControlAffinity.trailing,
                                   groupValue: _payType,
@@ -182,11 +210,11 @@ class HomePageState extends State<HomePage> {
                                 child: RadioListTile(
                                   value: 'aliPay',
                                   title: Text('支付宝',
-                                      style: TextStyle(fontSize: 20.0)),
+                                      style: TextStyle(fontSize: 16.0)),
                                   activeColor: Color(0xffff775d),
                                   secondary: Image.asset(
                                       'assets/images/AliPayLogo.png',
-                                      width: 36),
+                                      width: 32),
                                   controlAffinity:
                                       ListTileControlAffinity.trailing,
                                   groupValue: _payType,
@@ -201,7 +229,7 @@ class HomePageState extends State<HomePage> {
                           ),
                         ),
                         Container(
-                            width: 300.0,
+                            width: 240.0,
                             margin: EdgeInsets.only(top: 30.0),
                             decoration: BoxDecoration(
                                 color: Color(0xffff775d), // 渐变色
@@ -211,7 +239,7 @@ class HomePageState extends State<HomePage> {
                                 onPressed: () => _payAction(type),
                                 child: Text(
                                   '立即支付',
-                                  style: TextStyle(fontSize: 20.0),
+                                  style: TextStyle(fontSize: 16.0),
                                 ),
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(48.0))))
@@ -233,9 +261,9 @@ class HomePageState extends State<HomePage> {
         GestureDetector(
           onTap: () => _showModal('A'),
           child: Container(
-              width: 150.0,
-              height: 60.0,
-              margin: EdgeInsets.all(50.0),
+              width: 180.0,
+              height: 180.0,
+              margin: EdgeInsets.all(30.0),
               alignment: Alignment.center,
               decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10.0),
@@ -250,9 +278,9 @@ class HomePageState extends State<HomePage> {
         GestureDetector(
           onTap: () => _showModal('C'),
           child: Container(
-              width: 150.0,
-              height: 60.0,
-              margin: EdgeInsets.all(50.0),
+              width: 180.0,
+              height: 180.0,
+              margin: EdgeInsets.all(30.0),
               alignment: Alignment.center,
               decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10.0),

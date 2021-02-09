@@ -19,6 +19,7 @@ class LoginPage extends StatefulWidget {
 }
 
 class LoginPageState extends State<LoginPage> {
+  String _cookie = '';
   String _name = '';
   String _phone = '';
   String _code = '';
@@ -35,15 +36,35 @@ class LoginPageState extends State<LoginPage> {
     // checkDevice();
   }
 
+  bool _validPhone(String phone) {
+    if (phone.trim() == '') {
+      EasyLoading.showToast('请输入手机号');
+      return false;
+    }
+    RegExp mobileReg = new RegExp(r"1[0-9]\d{9}$");
+    bool matched = mobileReg.hasMatch(phone);
+    if (!matched) {
+      EasyLoading.showToast('手机号不正确');
+      return false;
+    }
+    return true;
+  }
+
   Future _getCode() async {
     try {
-      if (!_available) {
+      if (!_available || !_validPhone(_phone)) {
         return;
       }
+      EasyLoading.show();
+      setState(() {
+        _available = false;
+      });
       _seconds = _countdown;
       var url = '$apiHost/api/getVerifyCode';
       var response = await http
           .post(url, body: {'phone': _phone}).timeout(Duration(seconds: 30));
+      _cookie = response.headers['set-cookie'];
+      print(_cookie);
       if (response.statusCode != 200) {
         throw Error.safeToString('获取失败');
       }
@@ -51,11 +72,17 @@ class LoginPageState extends State<LoginPage> {
       if (data['code'] != 1) {
         throw Error.safeToString(data['message']);
       }
+      EasyLoading.showToast('获取成功');
       _startTimer();
     } catch (exception) {
       if (exception is String) {
         EasyLoading.showError(exception.replaceAll('"', ''));
       }
+      setState(() {
+        _available = true;
+      });
+    } finally {
+      EasyLoading.dismiss();
     }
   }
 
@@ -71,7 +98,6 @@ class LoginPageState extends State<LoginPage> {
         return;
       }
       setState(() {
-        _available = false;
         _verifyStr = '已发送$_seconds' + 's';
       });
       _seconds -= 1;
@@ -121,20 +147,21 @@ class LoginPageState extends State<LoginPage> {
       EasyLoading.showToast('请输入姓名');
       return;
     }
-    if (_phone.trim() == '') {
-      EasyLoading.showToast('请输入手机号');
+    if (!_validPhone(_phone)) {
       return;
     }
     if (_code.trim() == '') {
       EasyLoading.showToast('请输入验证码');
       return;
     }
-    EasyLoading.show(status: 'loading...');
+    EasyLoading.show(status: '登录中');
     String androidId = await deviceInfo.getDeviceInfo();
-    _jumpPage();
     try {
+      print('->>>>$_cookie');
       var url = '$apiHost/api/login';
-      var response = await http.post(url, body: {
+      var response = await http.post(url, headers: {
+        'cookie': _cookie
+      }, body: {
         'name': _name,
         'phone': _phone,
         'code': _code,
@@ -148,6 +175,7 @@ class LoginPageState extends State<LoginPage> {
         throw Error.safeToString(data['message']);
       }
       _prefs.setBool('activated', true);
+      _timer?.cancel();
       _jumpPage();
     } catch (exception) {
       if (exception is String) {
@@ -196,16 +224,16 @@ class LoginPageState extends State<LoginPage> {
     return Scaffold(
         backgroundColor: Colors.white,
         body: Padding(
-          padding: EdgeInsets.all(30.0),
+          padding: EdgeInsets.all(16.0),
           child: Wrap(children: <Widget>[
             Container(
-                margin: EdgeInsets.only(top: 60.0),
+                margin: EdgeInsets.only(top: 100.0),
                 child: Text('手机号登录',
                     style: TextStyle(
                         fontSize: 28.0, fontWeight: FontWeight.bold))),
             Container(
                 padding: EdgeInsets.symmetric(horizontal: 10.0),
-                margin: EdgeInsets.only(top: 50.0, bottom: 5.0),
+                margin: EdgeInsets.only(top: 40.0, bottom: 5.0),
                 decoration: BoxDecoration(
                     border: Border(
                         bottom: BorderSide(
@@ -214,7 +242,7 @@ class LoginPageState extends State<LoginPage> {
                             color: Color(0xffeeeeee)))),
                 child: TextField(
                   onChanged: _setName,
-                  style: TextStyle(fontSize: 18.0),
+                  style: TextStyle(fontSize: 16.0),
                   decoration: InputDecoration(
                     hintText: '请输入姓名',
                     border: InputBorder.none,
@@ -233,20 +261,19 @@ class LoginPageState extends State<LoginPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    width: 230.0,
+                    width: 220.0,
                     child: TextField(
-                      onChanged: _setPhone,
-                      style: TextStyle(fontSize: 18.0),
-                      keyboardType: TextInputType.phone,
-                      decoration: InputDecoration(
-                        hintText: '请输入手机号',
-                        border: InputBorder.none,
-                      ),
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,//只允许输入数字
-                        LengthLimitingTextInputFormatter(11)
-                      ]
-                    ),
+                        onChanged: _setPhone,
+                        style: TextStyle(fontSize: 16.0),
+                        keyboardType: TextInputType.phone,
+                        decoration: InputDecoration(
+                          hintText: '请输入手机号',
+                          border: InputBorder.none,
+                        ),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly, //只允许输入数字
+                          LengthLimitingTextInputFormatter(11)
+                        ]),
                   ),
                   MaterialButton(
                       color: Color(0xffff775d),
@@ -257,7 +284,7 @@ class LoginPageState extends State<LoginPage> {
                       onPressed: _available ? _getCode : null,
                       child: Text(
                         _verifyStr,
-                        style: TextStyle(fontSize: 16.0),
+                        style: TextStyle(fontSize: 12.0),
                       ),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(4.0)))
@@ -274,21 +301,20 @@ class LoginPageState extends State<LoginPage> {
                             style: BorderStyle.solid,
                             color: Color(0xffeeeeee)))),
                 child: TextField(
-                  onChanged: _setCode,
-                  keyboardType: TextInputType.number,
-                  style: TextStyle(fontSize: 18.0),
-                  decoration: InputDecoration(
-                    hintText: '请输入验证码',
-                    border: InputBorder.none,
-                  ),
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,//只允许输入数字
-                    LengthLimitingTextInputFormatter(6)
-                  ]
-                )),
+                    onChanged: _setCode,
+                    keyboardType: TextInputType.number,
+                    style: TextStyle(fontSize: 16.0),
+                    decoration: InputDecoration(
+                      hintText: '请输入验证码',
+                      border: InputBorder.none,
+                    ),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly, //只允许输入数字
+                      LengthLimitingTextInputFormatter(6)
+                    ])),
             Container(
                 width: double.infinity,
-                margin: EdgeInsets.only(top: 40.0),
+                margin: EdgeInsets.only(top: 80.0),
                 decoration: BoxDecoration(
                     color: Color(0xffff775d), // 渐变色
                     borderRadius: BorderRadius.circular(48.0)),
@@ -297,7 +323,7 @@ class LoginPageState extends State<LoginPage> {
                     onPressed: _activeDevice,
                     child: Text(
                       '登录',
-                      style: TextStyle(fontSize: 20.0, letterSpacing: 12.0),
+                      style: TextStyle(fontSize: 18.0, letterSpacing: 12.0),
                     ),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(48.0)))),
