@@ -160,51 +160,28 @@ class QuestionState extends State<QuestionPage> {
       return Container();
     }
     return Scaffold(
-      appBar: AppBar(title: Text(_title), centerTitle: true),
-      backgroundColor: Colors.white,
-      body: Stack(
-        children: [
-          PageView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: questions.getLength(),
-            itemBuilder: (context, index) {
-              return _buildPageViewItem(index);
-            },
-          ),
-          isReview
-              ? Container()
-              : Stack(children: <Widget>[
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    child: Container(
-                      padding: EdgeInsets.symmetric(vertical: 10.0),
-                      decoration: BoxDecoration(
-                          color: Colors.white,
-                          boxShadow: [
-                            BoxShadow(color: Color(0x50000000), blurRadius: 5.0)
-                          ]),
-                      child: Container(
-                          height: 36.0,
-                          margin: EdgeInsets.symmetric(horizontal: 60.0),
-                          decoration: BoxDecoration(
-                              color: Color(0xffff775d), // 渐变色
-                              borderRadius: BorderRadius.circular(36.0)),
-                          child: MaterialButton(
-                              onPressed: _submit,
-                              child: Text(
-                                '交卷并查看结果',
-                                style: TextStyle(
-                                    fontSize: 14.0, color: Colors.white),
-                              ),
-                              shape: RoundedRectangleBorder(
-                                  side: BorderSide.none,
-                                  borderRadius: BorderRadius.circular(48.0)))),
-                    ),
-                  )
-                ])
+      appBar: AppBar(
+        title: Text(_title, style: TextStyle(fontSize: 16.0)),
+        centerTitle: true,
+        actions: <Widget>[
+          MaterialButton(
+              onPressed: _submit,
+              child: Text(
+                '提交',
+                style: TextStyle(fontSize: 14.0, color: Color(0xffff775d)),
+              ),
+              shape: RoundedRectangleBorder(
+                side: BorderSide.none,
+              ))
         ],
+      ),
+      backgroundColor: Colors.white,
+      body: PageView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: questions.getLength(),
+        itemBuilder: (context, index) {
+          return _buildPageViewItem(index);
+        },
       ),
     );
   }

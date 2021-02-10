@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:device_info/device_info.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_easyloading/flutter_easyloading.dart';
 
 import 'constants.dart';
 
