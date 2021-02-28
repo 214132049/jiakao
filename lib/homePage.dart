@@ -191,23 +191,23 @@ class HomePageState extends State<HomePage> {
               child: Column(
                 children: [
                   Container(
-                    margin: EdgeInsets.only(top: 16.0, bottom: 8.0),
+                    margin: EdgeInsets.symmetric(vertical: 10.0),
                     child: Center(
                         child: Text(
                       '选择支付方式',
                       style: TextStyle(
-                          fontSize: 18.0, fontWeight: FontWeight.bold),
+                          fontSize: 16.0,  color: Colors.grey),
                     )),
                   ),
                   Container(
                     margin: EdgeInsets.only(bottom: 10.0),
                     child: Text(
-                      '需要支付50元，请先支付',
-                      style: TextStyle(fontSize: 14.0, color: Colors.grey),
+                      '开通考试，需要支付50元',
+                      style: TextStyle(fontSize: 16.0),
                     ),
                   ),
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: 10.0),
+                    padding: EdgeInsets.symmetric(horizontal: 20.0),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,
@@ -259,7 +259,8 @@ class HomePageState extends State<HomePage> {
                           ),
                         ),
                         Container(
-                            width: 260.0,
+                            width: 240.0,
+                            height: 36.0,
                             margin: EdgeInsets.only(top: 30.0),
                             decoration: BoxDecoration(
                                 color: Color(0xffff775d), // 渐变色
