@@ -52,6 +52,7 @@ class LoginPageState extends State<LoginPage> {
 
   Future _getCode() async {
     try {
+      EasyLoading.show();
       if (!_available || !_validPhone()) {
         return;
       }
@@ -73,12 +74,16 @@ class LoginPageState extends State<LoginPage> {
       EasyLoading.showToast('获取成功');
       _startTimer();
     } catch (exception) {
-      if (exception is String) {
-        EasyLoading.showError(exception.replaceAll('"', ''));
-      }
       setState(() {
         _available = true;
       });
+      if (exception is String) {
+        EasyLoading.showError(exception.replaceAll('"', ''));
+      } else {
+        EasyLoading.showError('获取失败');
+      }
+    } finally {
+      EasyLoading.dismiss();
     }
   }
 

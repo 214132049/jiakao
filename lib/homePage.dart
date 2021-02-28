@@ -22,7 +22,7 @@ class HomePage extends StatefulWidget {
 
 class HomePageState extends State<HomePage> {
   final deviceInfo = DeviceInfo();
-  String _payType = 'wePay';
+  String _payType = 'aliPay';
   SharedPreferences _prefs;
 
   @override
@@ -57,7 +57,7 @@ class HomePageState extends State<HomePage> {
     Future<void> future = _showBottomSheet(type);
     future.then((value) {
       setState(() {
-        _payType = 'wePay';
+        _payType = 'aliPay';
       });
     });
   }
@@ -104,8 +104,7 @@ class HomePageState extends State<HomePage> {
       }
       Map payResult;
       String _payInfo = await _getOrderInfo(false);
-      payResult = await aliPay(_payInfo,
-          evn: isProd ? AliPayEvn.ONLINE : AliPayEvn.SANDBOX);
+      payResult = await aliPay(_payInfo);
       print('--->>>$payResult');
       if (payResult['resultStatus'] != '9000') {
         throw Error.safeToString(payResult['memo']);
@@ -124,13 +123,12 @@ class HomePageState extends State<HomePage> {
 
   _getOrderInfo(bool isWx) async {
     try {
-      EasyLoading.show(status: 'loading...');
+      EasyLoading.show();
       String androidId = await deviceInfo.getDeviceInfo();
       var url =
           isWx ? '$apiHost/api/getWxOrderInfo' : '$apiHost/api/getAliOrderInfo';
-      var response = await http.post(url, body: {
-        'deviceId': androidId
-      }).timeout(Duration(seconds: 30));
+      var response = await http.post(url,
+          body: {'deviceId': androidId}).timeout(Duration(seconds: 30));
       print(response);
       if (response.statusCode != 200) {
         throw Error();
@@ -175,7 +173,7 @@ class HomePageState extends State<HomePage> {
         builder: (BuildContext context) {
           return StatefulBuilder(builder: (context, _setState) {
             return Container(
-              height: 320,
+              height: 260,
               child: Column(
                 children: [
                   Container(
@@ -206,26 +204,6 @@ class HomePageState extends State<HomePage> {
                               Container(
                                 margin: EdgeInsets.symmetric(vertical: 5.0),
                                 child: RadioListTile(
-                                  value: 'wePay',
-                                  title: Text('微信支付',
-                                      style: TextStyle(fontSize: 16.0)),
-                                  activeColor: Color(0xffff775d),
-                                  secondary: Image.asset(
-                                      'assets/images/WePayLogo.png',
-                                      width: 32),
-                                  controlAffinity:
-                                      ListTileControlAffinity.trailing,
-                                  groupValue: _payType,
-                                  onChanged: (value) {
-                                    _setState(() {
-                                      _payType = value;
-                                    });
-                                  },
-                                ),
-                              ),
-                              Container(
-                                margin: EdgeInsets.symmetric(vertical: 5.0),
-                                child: RadioListTile(
                                   value: 'aliPay',
                                   title: Text('支付宝',
                                       style: TextStyle(fontSize: 16.0)),
@@ -243,6 +221,26 @@ class HomePageState extends State<HomePage> {
                                   },
                                 ),
                               ),
+                              // Container(
+                              //   margin: EdgeInsets.symmetric(vertical: 5.0),
+                              //   child: RadioListTile(
+                              //     value: 'wePay',
+                              //     title: Text('微信支付',
+                              //         style: TextStyle(fontSize: 16.0)),
+                              //     activeColor: Color(0xffff775d),
+                              //     secondary: Image.asset(
+                              //         'assets/images/WePayLogo.png',
+                              //         width: 32),
+                              //     controlAffinity:
+                              //         ListTileControlAffinity.trailing,
+                              //     groupValue: _payType,
+                              //     onChanged: (value) {
+                              //       _setState(() {
+                              //         _payType = value;
+                              //       });
+                              //     },
+                              //   ),
+                              // ),
                             ],
                           ),
                         ),
@@ -279,8 +277,8 @@ class HomePageState extends State<HomePage> {
         GestureDetector(
           onTap: () => _showModal('A'),
           child: Container(
-              width: 180.0,
-              height: 180.0,
+              width: 120.0,
+              height: 120.0,
               margin: EdgeInsets.all(10.0),
               alignment: Alignment.center,
               decoration: BoxDecoration(
@@ -296,8 +294,8 @@ class HomePageState extends State<HomePage> {
         GestureDetector(
           onTap: () => _showModal('C'),
           child: Container(
-              width: 180.0,
-              height: 180.0,
+              width: 120.0,
+              height: 120.0,
               margin: EdgeInsets.all(10.0),
               alignment: Alignment.center,
               decoration: BoxDecoration(
