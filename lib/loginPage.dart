@@ -33,7 +33,6 @@ class LoginPageState extends State<LoginPage> {
 
   LoginPageState() {
     EasyLoading.instance..userInteractions = false;
-    _checkDevice();
   }
 
   bool _validPhone() {
@@ -111,19 +110,6 @@ class LoginPageState extends State<LoginPage> {
     _timer?.cancel();
   }
 
-  Future _checkDevice() async {
-    _prefs = await SharedPreferences.getInstance();
-
-    int status = _prefs.getInt('deviceStatus');
-
-    if(status == null || status == 0) {
-      status = await deviceInfo.deviceStatus();
-    }
-    if (status == 1 || status == 2) {
-      _jumpPage();
-    }
-  }
-
   Future _activeDevice() async {
     if (_name.trim() == '') {
       EasyLoading.showToast('请输入姓名');
@@ -137,6 +123,7 @@ class LoginPageState extends State<LoginPage> {
       return;
     }
     EasyLoading.show(status: '登录中');
+    _prefs = await SharedPreferences.getInstance();
     String androidId = await deviceInfo.getDeviceInfo();
     try {
       var url = '$apiHost/api/login';
@@ -157,7 +144,7 @@ class LoginPageState extends State<LoginPage> {
       }
       _prefs.setInt('deviceStatus', 1);
       _timer?.cancel();
-      _jumpPage();
+      Navigator.of(context).pop();
     } catch (exception) {
       if (exception is String) {
         EasyLoading.showError(exception.replaceAll('"', ''));
@@ -165,14 +152,6 @@ class LoginPageState extends State<LoginPage> {
     } finally {
       EasyLoading.dismiss();
     }
-  }
-
-  _jumpPage() {
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (context) => HomePage()),
-      (route) => route == null,
-    );
   }
 
   void _setName(v) {

@@ -12,6 +12,7 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'constants.dart';
 import 'deviceUtil.dart';
 import 'questionPage.dart';
+import 'loginPage.dart';
 
 class HomePage extends StatefulWidget {
   HomePage({Key key}) : super(key: key);
@@ -28,6 +29,7 @@ class HomePageState extends State<HomePage> {
   @override
   initState() {
     super.initState();
+    _checkDevice();
     _init();
   }
 
@@ -48,8 +50,20 @@ class HomePageState extends State<HomePage> {
     });
   }
 
-  void _showModal(String type) {
+  Future _checkDevice() async {
+    return deviceInfo.deviceStatus();
+  }
+
+  Future<void> _showModal(String type) async {
     int status = _prefs?.getInt('deviceStatus');
+    if (status == null) {
+      status = await _checkDevice();
+    }
+    if (status == 0) {
+      Navigator.push(context,
+          MaterialPageRoute(builder: (context) => LoginPage()));
+      return;
+    }
     if (status == 2) {
       _jumpPage(type);
       return;
@@ -255,7 +269,7 @@ class HomePageState extends State<HomePage> {
                                 onPressed: () => _payAction(type),
                                 child: Text(
                                   '立即支付',
-                                  style: TextStyle(fontSize: 16.0),
+                                  style: TextStyle(fontSize: 18.0),
                                 ),
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(48.0))))
@@ -277,36 +291,27 @@ class HomePageState extends State<HomePage> {
         GestureDetector(
           onTap: () => _showModal('A'),
           child: Container(
-              width: 120.0,
-              height: 120.0,
-              margin: EdgeInsets.all(10.0),
+              width: 240.0,
+              height: 100.0,
               alignment: Alignment.center,
               decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10.0),
-                  color: Color(0xffff775d),
-                  border: Border.all(
-                      width: 1.0,
-                      style: BorderStyle.solid,
-                      color: Color.fromRGBO(0, 0, 0, 0.1))),
+                  color: Color.fromRGBO(255, 119, 93, 0.1)),
               child: Text('A1模拟考试',
-                  style: TextStyle(fontSize: 20.0, color: Colors.white))),
+                  style: TextStyle(fontSize: 20.0, color: Color(0xffff775d)))),
         ),
         GestureDetector(
           onTap: () => _showModal('C'),
           child: Container(
-              width: 120.0,
-              height: 120.0,
-              margin: EdgeInsets.all(10.0),
+              width: 240.0,
+              height: 100.0,
+              margin: EdgeInsets.only(top: 80.0),
               alignment: Alignment.center,
               decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10.0),
-                  color: Color(0xffff775d),
-                  border: Border.all(
-                      width: 1.0,
-                      style: BorderStyle.solid,
-                      color: Color.fromRGBO(0, 0, 0, 0.1))),
+                  color: Color.fromRGBO(255, 119, 93, 0.1)),
               child: Text('C1模拟考试',
-                  style: TextStyle(fontSize: 20.0, color: Colors.white))),
+                  style: TextStyle(fontSize: 20.0, color: Color(0xffff775d)))),
         )
       ],
     );
