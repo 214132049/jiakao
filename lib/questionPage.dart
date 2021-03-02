@@ -61,7 +61,7 @@ class Question {
 }
 
 class QuestionPage extends StatefulWidget {
-  final String type;
+  final int type;
 
   QuestionPage({Key key, @required this.type}) : super(key: key);
 
@@ -76,10 +76,10 @@ class QuestionState extends State<QuestionPage> {
   Questions questions = Questions.fromJson([]);
   final deviceInfo = DeviceInfo();
   bool isReview = false;
-  String _type;
+  int _questionType;
 
-  QuestionState(type) {
-    _type = type;
+  QuestionState(int type) {
+    _questionType = type;
     isReview = false;
     this.getQuestions();
   }
@@ -98,7 +98,7 @@ class QuestionState extends State<QuestionPage> {
       String androidId = await deviceInfo.getDeviceInfo();
       var url = '$apiHost/api/getQuestions';
       var response = await http.post(url, body: {
-        'type': int.parse(_type),
+        'type': _questionType,
         'deviceId': androidId
       }).timeout(Duration(seconds: 30));
       if (response.statusCode != 200) {

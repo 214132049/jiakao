@@ -24,6 +24,7 @@ class HomePage extends StatefulWidget {
 class HomePageState extends State<HomePage> {
   final deviceInfo = DeviceInfo();
   String _payType = 'aliPay';
+  int _questionType;
   SharedPreferences _prefs;
 
   @override
@@ -54,7 +55,8 @@ class HomePageState extends State<HomePage> {
     return deviceInfo.deviceStatus();
   }
 
-  Future<void> _showModal(String type) async {
+  Future<void> _showModal(int type) async {
+    _questionType = type;
     int status = _prefs?.getInt('deviceStatus');
     if (status == null) {
       status = await _checkDevice();
@@ -65,10 +67,10 @@ class HomePageState extends State<HomePage> {
       return;
     }
     if (status == 2) {
-      _jumpPage(type);
+      _jumpPage();
       return;
     }
-    Future<void> future = _showBottomSheet(type);
+    Future<void> future = _showBottomSheet();
     future.then((value) {
       setState(() {
         _payType = 'aliPay';
@@ -76,7 +78,7 @@ class HomePageState extends State<HomePage> {
     });
   }
 
-  Future _payAction(String type) async {
+  Future _payAction() async {
     var payMethod;
     if (_payType == 'wePay') {
       payMethod = _handleWxPay;
@@ -86,7 +88,7 @@ class HomePageState extends State<HomePage> {
     try {
       await payMethod();
       _closeBottomSheet();
-      Timer(Duration(seconds: 1), () => {_jumpPage(type)});
+      Timer(Duration(seconds: 1), () => _jumpPage());
     } catch (e) {}
   }
 
@@ -167,16 +169,16 @@ class HomePageState extends State<HomePage> {
     }
   }
 
-  _jumpPage(type) {
+  _jumpPage() {
     Navigator.push(context,
-        MaterialPageRoute(builder: (context) => QuestionPage(type: type)));
+        MaterialPageRoute(builder: (context) => QuestionPage(type: _questionType)));
   }
 
   _closeBottomSheet() {
     Navigator.of(context).pop();
   }
 
-  _showBottomSheet(type) {
+  _showBottomSheet() {
     return showModalBottomSheet(
         context: context,
         backgroundColor: Colors.white,
@@ -260,14 +262,14 @@ class HomePageState extends State<HomePage> {
                         ),
                         Container(
                             width: 240.0,
-                            height: 36.0,
+                            height: 42.0,
                             margin: EdgeInsets.only(top: 30.0),
                             decoration: BoxDecoration(
                                 color: Color(0xffff775d), // 渐变色
                                 borderRadius: BorderRadius.circular(48.0)),
                             child: MaterialButton(
                                 textColor: Colors.white,
-                                onPressed: () => _payAction(type),
+                                onPressed: _payAction,
                                 child: Text(
                                   '立即支付',
                                   style: TextStyle(fontSize: 18.0),
@@ -289,8 +291,15 @@ class HomePageState extends State<HomePage> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
+        Container(
+          margin: EdgeInsets.only(bottom: 50),
+          child: Text(
+            '请选择身份，开始模拟考试',
+            style: TextStyle(fontSize: 14),
+          ),
+        ),
         GestureDetector(
-          onTap: () => _showModal('1'),
+          onTap: () => _showModal(1),
           child: Container(
               width: 240.0,
               height: 100.0,
@@ -302,11 +311,11 @@ class HomePageState extends State<HomePage> {
                   style: TextStyle(fontSize: 20.0, color: Color(0xffff775d)))),
         ),
         GestureDetector(
-          onTap: () => _showModal('2'),
+          onTap: () => _showModal(2),
           child: Container(
               width: 240.0,
               height: 100.0,
-              margin: EdgeInsets.only(top: 80.0),
+              margin: EdgeInsets.only(top: 30.0),
               alignment: Alignment.center,
               decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10.0),
