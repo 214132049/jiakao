@@ -98,7 +98,7 @@ class QuestionState extends State<QuestionPage> {
       String androidId = await deviceInfo.getDeviceInfo();
       var url = '$apiHost/api/getQuestions';
       var response = await http.post(url, body: {
-        'type': _type,
+        'type': int.parse(_type),
         'deviceId': androidId
       }).timeout(Duration(seconds: 30));
       if (response.statusCode != 200) {

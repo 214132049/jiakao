@@ -202,7 +202,7 @@ class HomePageState extends State<HomePage> {
                   Container(
                     margin: EdgeInsets.only(bottom: 10.0),
                     child: Text(
-                      '开通考试，需要支付100元',
+                      '开通考试，需要支付50元',
                       style: TextStyle(fontSize: 16.0),
                     ),
                   ),
@@ -290,7 +290,7 @@ class HomePageState extends State<HomePage> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         GestureDetector(
-          onTap: () => _showModal('A'),
+          onTap: () => _showModal('1'),
           child: Container(
               width: 240.0,
               height: 100.0,
@@ -298,11 +298,11 @@ class HomePageState extends State<HomePage> {
               decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10.0),
                   color: Color.fromRGBO(255, 119, 93, 0.1)),
-              child: Text('A1模拟考试',
+              child: Text('企业主要负责人',
                   style: TextStyle(fontSize: 20.0, color: Color(0xffff775d)))),
         ),
         GestureDetector(
-          onTap: () => _showModal('C'),
+          onTap: () => _showModal('2'),
           child: Container(
               width: 240.0,
               height: 100.0,
@@ -311,7 +311,7 @@ class HomePageState extends State<HomePage> {
               decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10.0),
                   color: Color.fromRGBO(255, 119, 93, 0.1)),
-              child: Text('C1模拟考试',
+              child: Text('安全生产管理人员',
                   style: TextStyle(fontSize: 20.0, color: Color(0xffff775d)))),
         )
       ],
