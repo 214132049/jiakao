@@ -202,7 +202,7 @@ class HomePageState extends State<HomePage> {
                   Container(
                     margin: EdgeInsets.only(bottom: 10.0),
                     child: Text(
-                      '开通考试，需要支付50元',
+                      '开通考试，需要支付100元',
                       style: TextStyle(fontSize: 16.0),
                     ),
                   ),
