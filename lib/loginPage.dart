@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -9,7 +10,7 @@ import 'package:http/http.dart' as http;
 
 import 'constants.dart';
 import 'deviceUtil.dart';
-import 'homePage.dart';
+import 'webViewPage.dart';
 
 class LoginPage extends StatefulWidget {
   LoginPage({Key key}) : super(key: key);
@@ -154,6 +155,11 @@ class LoginPageState extends State<LoginPage> {
     }
   }
 
+  _toWebViewPage() {
+    Navigator.push(context,
+        MaterialPageRoute(builder: (context) => WebViewPage()));
+  }
+
   void _setName(v) {
     setState(() {
       _name = v;
@@ -274,7 +280,7 @@ class LoginPageState extends State<LoginPage> {
                     ])),
             Container(
                 width: double.infinity,
-                margin: EdgeInsets.only(top: 80.0),
+                margin: EdgeInsets.only(top: 50.0),
                 decoration: BoxDecoration(
                     color: Color(0xffff775d), // 渐变色
                     borderRadius: BorderRadius.circular(48.0)),
@@ -287,6 +293,21 @@ class LoginPageState extends State<LoginPage> {
                     ),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(48.0)))),
+            Center(
+              child: Container(
+                margin: EdgeInsets.only(top: 20.0),
+                child: RichText(
+                  text: TextSpan(
+                      style: TextStyle(fontSize: 14.0, color: Colors.black54),
+                      children: [
+                        TextSpan(text: '登录即代表你同意'),
+                        TextSpan(text: '《隐私政策》', style: TextStyle(color: Colors.blue),
+                            recognizer: TapGestureRecognizer()..onTap = _toWebViewPage)
+                      ]
+                  ),
+                ),
+              ),
+            )
           ]),
         ));
   }
