@@ -156,8 +156,8 @@ class LoginPageState extends State<LoginPage> {
   }
 
   _toWebViewPage() {
-    Navigator.push(context,
-        MaterialPageRoute(builder: (context) => WebViewPage()));
+    Navigator.push(
+        context, MaterialPageRoute(builder: (context) => WebViewPage()));
   }
 
   void _setName(v) {
@@ -189,126 +189,135 @@ class LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: Colors.white,
-        body: Padding(
-          padding: EdgeInsets.all(16.0),
-          child: Wrap(children: <Widget>[
-            Container(
-                margin: EdgeInsets.only(top: 100.0),
-                child: Text('手机号登录',
-                    style: TextStyle(
-                        fontSize: 28.0, fontWeight: FontWeight.bold))),
-            Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.0),
-                margin: EdgeInsets.only(top: 40.0, bottom: 5.0),
-                decoration: BoxDecoration(
-                    border: Border(
-                        bottom: BorderSide(
-                            width: 1.0,
-                            style: BorderStyle.solid,
-                            color: Color(0xffeeeeee)))),
-                child: TextField(
-                  onChanged: _setName,
-                  style: TextStyle(fontSize: 16.0),
-                  decoration: InputDecoration(
-                    hintText: '请输入姓名',
-                    border: InputBorder.none,
-                  ),
-                )),
-            Container(
-              padding: EdgeInsets.only(left: 10.0),
-              margin: EdgeInsets.only(right: 5.0),
-              decoration: BoxDecoration(
-                  border: Border(
-                      bottom: BorderSide(
-                          width: 1.0,
-                          style: BorderStyle.solid,
-                          color: Color(0xffeeeeee)))),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    width: 220.0,
+        body: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTap: () {
+              // 触摸收起键盘
+              FocusScope.of(context).requestFocus(FocusNode());
+            },
+            child: Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Wrap(children: <Widget>[
+                Container(
+                    margin: EdgeInsets.only(top: 100.0),
+                    child: Text('手机号登录',
+                        style: TextStyle(
+                            fontSize: 28.0, fontWeight: FontWeight.bold))),
+                Container(
+                    padding: EdgeInsets.symmetric(horizontal: 10.0),
+                    margin: EdgeInsets.only(top: 40.0, bottom: 5.0),
+                    decoration: BoxDecoration(
+                        border: Border(
+                            bottom: BorderSide(
+                                width: 1.0,
+                                style: BorderStyle.solid,
+                                color: Color(0xffeeeeee)))),
                     child: TextField(
-                        onChanged: _setPhone,
+                      onChanged: _setName,
+                      style: TextStyle(fontSize: 16.0),
+                      decoration: InputDecoration(
+                        hintText: '请输入姓名',
+                        border: InputBorder.none,
+                      ),
+                    )),
+                Container(
+                  padding: EdgeInsets.only(left: 10.0),
+                  margin: EdgeInsets.only(right: 5.0),
+                  decoration: BoxDecoration(
+                      border: Border(
+                          bottom: BorderSide(
+                              width: 1.0,
+                              style: BorderStyle.solid,
+                              color: Color(0xffeeeeee)))),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        width: 220.0,
+                        child: TextField(
+                            onChanged: _setPhone,
+                            style: TextStyle(fontSize: 16.0),
+                            keyboardType: TextInputType.phone,
+                            decoration: InputDecoration(
+                              hintText: '请输入手机号',
+                              border: InputBorder.none,
+                            ),
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly, //只允许输入数字
+                              LengthLimitingTextInputFormatter(11)
+                            ]),
+                      ),
+                      MaterialButton(
+                          color: Color(0xffff775d),
+                          disabledColor: Color(0x90ff775d),
+                          padding: EdgeInsets.symmetric(horizontal: 10.0),
+                          textColor: Colors.white,
+                          disabledTextColor: Colors.white,
+                          onPressed: _available ? _getCode : null,
+                          child: Text(
+                            _verifyStr,
+                            style: TextStyle(fontSize: 12.0),
+                          ),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(4.0)))
+                    ],
+                  ),
+                ),
+                Container(
+                    padding: EdgeInsets.symmetric(horizontal: 10.0),
+                    margin: EdgeInsets.symmetric(vertical: 5.0),
+                    decoration: BoxDecoration(
+                        border: Border(
+                            bottom: BorderSide(
+                                width: 1.0,
+                                style: BorderStyle.solid,
+                                color: Color(0xffeeeeee)))),
+                    child: TextField(
+                        onChanged: _setCode,
+                        keyboardType: TextInputType.number,
                         style: TextStyle(fontSize: 16.0),
-                        keyboardType: TextInputType.phone,
                         decoration: InputDecoration(
-                          hintText: '请输入手机号',
+                          hintText: '请输入验证码',
                           border: InputBorder.none,
                         ),
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly, //只允许输入数字
-                          LengthLimitingTextInputFormatter(11)
-                        ]),
-                  ),
-                  MaterialButton(
-                      color: Color(0xffff775d),
-                      disabledColor: Color(0x90ff775d),
-                      padding: EdgeInsets.symmetric(horizontal: 10.0),
-                      textColor: Colors.white,
-                      disabledTextColor: Colors.white,
-                      onPressed: _available ? _getCode : null,
-                      child: Text(
-                        _verifyStr,
-                        style: TextStyle(fontSize: 12.0),
-                      ),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(4.0)))
-                ],
-              ),
-            ),
-            Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.0),
-                margin: EdgeInsets.symmetric(vertical: 5.0),
-                decoration: BoxDecoration(
-                    border: Border(
-                        bottom: BorderSide(
-                            width: 1.0,
-                            style: BorderStyle.solid,
-                            color: Color(0xffeeeeee)))),
-                child: TextField(
-                    onChanged: _setCode,
-                    keyboardType: TextInputType.number,
-                    style: TextStyle(fontSize: 16.0),
-                    decoration: InputDecoration(
-                      hintText: '请输入验证码',
-                      border: InputBorder.none,
+                          LengthLimitingTextInputFormatter(6)
+                        ])),
+                Container(
+                    width: double.infinity,
+                    margin: EdgeInsets.only(top: 50.0),
+                    decoration: BoxDecoration(
+                        color: Color(0xffff775d), // 渐变色
+                        borderRadius: BorderRadius.circular(48.0)),
+                    child: MaterialButton(
+                        textColor: Colors.white,
+                        onPressed: _activeDevice,
+                        child: Text(
+                          '登录',
+                          style: TextStyle(fontSize: 18.0, letterSpacing: 12.0),
+                        ),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(48.0)))),
+                Center(
+                  child: Container(
+                    margin: EdgeInsets.only(top: 20.0),
+                    child: RichText(
+                      text: TextSpan(
+                          style:
+                              TextStyle(fontSize: 14.0, color: Colors.black54),
+                          children: [
+                            TextSpan(text: '登录即代表你同意'),
+                            TextSpan(
+                                text: '《隐私政策》',
+                                style: TextStyle(color: Colors.blue),
+                                recognizer: TapGestureRecognizer()
+                                  ..onTap = _toWebViewPage)
+                          ]),
                     ),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly, //只允许输入数字
-                      LengthLimitingTextInputFormatter(6)
-                    ])),
-            Container(
-                width: double.infinity,
-                margin: EdgeInsets.only(top: 50.0),
-                decoration: BoxDecoration(
-                    color: Color(0xffff775d), // 渐变色
-                    borderRadius: BorderRadius.circular(48.0)),
-                child: MaterialButton(
-                    textColor: Colors.white,
-                    onPressed: _activeDevice,
-                    child: Text(
-                      '登录',
-                      style: TextStyle(fontSize: 18.0, letterSpacing: 12.0),
-                    ),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(48.0)))),
-            Center(
-              child: Container(
-                margin: EdgeInsets.only(top: 20.0),
-                child: RichText(
-                  text: TextSpan(
-                      style: TextStyle(fontSize: 14.0, color: Colors.black54),
-                      children: [
-                        TextSpan(text: '登录即代表你同意'),
-                        TextSpan(text: '《隐私政策》', style: TextStyle(color: Colors.blue),
-                            recognizer: TapGestureRecognizer()..onTap = _toWebViewPage)
-                      ]
                   ),
-                ),
-              ),
-            )
-          ]),
-        ));
+                )
+              ]),
+            )));
   }
 }

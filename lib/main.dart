@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'homePage.dart';
 
@@ -32,6 +33,15 @@ class MyApp extends StatelessWidget {
           ),
           home: HomePage(),
           builder: EasyLoading.init(),
+          localizationsDelegates: [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: [
+            const Locale('zh', 'CN'),
+            const Locale('en', 'US'),
+          ],
         ));
   }
 }

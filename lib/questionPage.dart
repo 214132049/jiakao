@@ -61,7 +61,7 @@ class Question {
 }
 
 class QuestionPage extends StatefulWidget {
-  final int type;
+  final String type;
 
   QuestionPage({Key key, @required this.type}) : super(key: key);
 
@@ -76,9 +76,9 @@ class QuestionState extends State<QuestionPage> {
   Questions questions = Questions.fromJson([]);
   final deviceInfo = DeviceInfo();
   bool isReview = false;
-  int _questionType;
+  String _questionType;
 
-  QuestionState(int type) {
+  QuestionState(String type) {
     _questionType = type;
     isReview = false;
     this.getQuestions();
@@ -125,6 +125,8 @@ class QuestionState extends State<QuestionPage> {
     } catch (exception) {
       if (exception is String) {
         EasyLoading.showError(exception.replaceAll('"', ''));
+      } else {
+        EasyLoading.showError('获取失败');
       }
       return Questions.fromJson([]);
     } finally {

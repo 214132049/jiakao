@@ -24,7 +24,7 @@ class HomePage extends StatefulWidget {
 class HomePageState extends State<HomePage> {
   final deviceInfo = DeviceInfo();
   String _payType = 'aliPay';
-  int _questionType;
+  String _questionType;
   SharedPreferences _prefs;
 
   @override
@@ -55,7 +55,7 @@ class HomePageState extends State<HomePage> {
     return deviceInfo.deviceStatus();
   }
 
-  Future<void> _showModal(int type) async {
+  Future<void> _showModal(String type) async {
     _questionType = type;
     int status = _prefs?.getInt('deviceStatus');
     if (status == null) {
@@ -299,7 +299,7 @@ class HomePageState extends State<HomePage> {
           ),
         ),
         GestureDetector(
-          onTap: () => _showModal(1),
+          onTap: () => _showModal('1'),
           child: Container(
               width: 240.0,
               height: 100.0,
@@ -311,7 +311,7 @@ class HomePageState extends State<HomePage> {
                   style: TextStyle(fontSize: 20.0, color: Color(0xffff775d)))),
         ),
         GestureDetector(
-          onTap: () => _showModal(2),
+          onTap: () => _showModal('2'),
           child: Container(
               width: 240.0,
               height: 100.0,
