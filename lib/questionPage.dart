@@ -13,6 +13,7 @@ import 'deviceUtil.dart';
 import 'result.dart';
 import 'chip.dart';
 import 'transferData.dart';
+import 'payView.dart';
 
 class Questions {
   List<Question> questions;
@@ -71,6 +72,9 @@ class QuestionPage extends StatefulWidget {
 
 class QuestionState extends State<QuestionPage> {
   String _title = '模拟考试';
+  int _pageIndex = 0;
+  int _tryPageIndex = 10;
+  PageController _pageController;
   List<String> answersEnum = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
   Map<int, String> questionTypes = {1: '单选题', 2: '判断题', 3: '多选题'};
   Questions questions = Questions.fromJson([]);
@@ -82,6 +86,19 @@ class QuestionState extends State<QuestionPage> {
     _questionType = type;
     isReview = false;
     this.getQuestions();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: _pageIndex);
+  }
+
+  _paySuccessCallback() {}
+
+  _changePage(index) {
+    print(index);
+    _pageController.jumpToPage(index);
   }
 
   getQuestions() {
@@ -109,19 +126,7 @@ class QuestionState extends State<QuestionPage> {
         throw Error.safeToString(data['message']);
       }
       List<dynamic> listJson = data['data'];
-      var rng = new Random();
-      var realList = [];
-      for (var i = 0; i < 100; i++) {
-        var rngIndex = rng.nextInt(listJson.length);
-        realList.add(listJson[rngIndex]);
-      }
-      // realList.sort(
-      //     (left, right) => left['questionType'].compareTo(right['questionType']));
-      Questions questionList = Questions.fromJson(realList);
-      for (Question question in questionList.questions) {
-        question.userAnswer = '';
-      }
-      return questionList;
+      return _getRandomQuestions(listJson);
     } catch (exception) {
       if (exception is String) {
         EasyLoading.showError(exception.replaceAll('"', ''));
@@ -132,6 +137,22 @@ class QuestionState extends State<QuestionPage> {
     } finally {
       EasyLoading.dismiss();
     }
+  }
+
+  Questions _getRandomQuestions(List listJson) {
+    var rng = new Random();
+    var realList = [];
+    for (var i = 0; i < 100; i++) {
+      var rngIndex = rng.nextInt(listJson.length);
+      realList.add(listJson[rngIndex]);
+    }
+    realList.sort(
+        (left, right) => left['questionType'].compareTo(right['questionType']));
+    Questions questionList = Questions.fromJson(realList);
+    for (Question question in questionList.questions) {
+      question.userAnswer = '';
+    }
+    return questionList;
   }
 
   _submit() {
@@ -178,14 +199,92 @@ class QuestionState extends State<QuestionPage> {
         ],
       ),
       backgroundColor: Colors.white,
-      body: PageView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: questions.getLength(),
-        itemBuilder: (context, index) {
-          return _buildPageViewItem(index);
-        },
+      body: Stack(
+        children: [
+          PayView(key: payViewKey, payCallback: _paySuccessCallback),
+          PageView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: questions.getLength(),
+            controller: _pageController,
+            onPageChanged: (index) {
+              if (index >= _tryPageIndex) {
+                _changePage(_tryPageIndex);
+                payViewKey.currentState.showPayPanel();
+                setState(() {
+                  _pageIndex = 3;
+                });
+                return;
+              }
+              setState(() {
+                _pageIndex = index;
+              });
+            },
+            itemBuilder: (context, index) {
+              return _buildPageViewItem(index);
+            },
+          ),
+          questions.getLength() != 0 ? new Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              decoration: BoxDecoration(
+                  border: Border(
+                      top: BorderSide(
+                color: Color(0x80cccccc),
+              ))),
+              padding: EdgeInsets.symmetric(horizontal: 30.0, vertical: 6.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _buildButton(0 == _pageIndex, Color(0xff333333),
+                      IconData(0xe606, fontFamily: 'MyIcons'), '上一题', () {
+                    setState(() {
+                      _pageIndex--;
+                    });
+                    _changePage(_pageIndex);
+                  }),
+                  _buildButton(
+                      _pageIndex == questions.getLength() - 1,
+                      Color(0xff333333),
+                      IconData(0xe60d, fontFamily: 'MyIcons'),
+                      '下一题', () {
+                    setState(() {
+                      _pageIndex++;
+                    });
+                    _changePage(_pageIndex);
+                  })
+                ],
+              ),
+            ),
+          ): Container()
+        ],
       ),
     );
+  }
+
+  _buildButton(bool disabled, Color color, IconData icon, String label,
+      Function callback) {
+    return GestureDetector(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: disabled ? Color(0xffdddddd) : color),
+            Container(
+              margin: const EdgeInsets.only(top: 2),
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                  color: disabled ? Color(0xffdddddd) : color,
+                ),
+              ),
+            ),
+          ],
+        ),
+        onTap: disabled ? () {} : callback);
   }
 
   _buildPageViewItem(index) {
