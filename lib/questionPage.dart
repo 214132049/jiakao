@@ -270,8 +270,11 @@ class QuestionState extends State<QuestionPage> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        _buildButton(0 == _pageIndex, Color(0xff333333),
-                            IconData(0xe606, fontFamily: 'MyIcons'), '上一题', () {
+                        _buildButton(
+                            0 == _pageIndex,
+                            Color(0xff333333),
+                            const IconData(0xe606, fontFamily: 'MyIcons'),
+                            '上一题', () {
                           _changePage('prev');
                         }),
                         _buildButton(
@@ -279,7 +282,7 @@ class QuestionState extends State<QuestionPage> {
                                     _pageIndex == questions.getLength() - 1) ||
                                 _pageIndex == questions.getLength(),
                             Color(0xff333333),
-                            IconData(0xe60d, fontFamily: 'MyIcons'),
+                            const IconData(0xe60d, fontFamily: 'MyIcons'),
                             '下一题', () {
                           _changePage('next');
                         })
