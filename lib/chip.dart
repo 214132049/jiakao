@@ -99,7 +99,7 @@ class CustomChip extends StatelessWidget {
                   label,
                   maxLines: 3,
                   style: TextStyle(
-                    fontSize: 12.0,
+                    fontSize: 14.0,
                     color: Color(0xff333333),
                   ),
                 ),

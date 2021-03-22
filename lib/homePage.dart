@@ -46,10 +46,7 @@ class HomePageState extends State<HomePage> {
           MaterialPageRoute(builder: (context) => LoginPage()));
       return;
     }
-    if (status == 2) {
-      _jumpPage();
-      return;
-    }
+    _jumpPage();
   }
 
   _jumpPage() {

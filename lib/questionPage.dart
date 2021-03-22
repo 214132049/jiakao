@@ -14,6 +14,7 @@ import 'result.dart';
 import 'chip.dart';
 import 'transferData.dart';
 import 'payView.dart';
+import 'customPageView.dart';
 
 class Questions {
   List<Question> questions;
@@ -73,7 +74,6 @@ class QuestionPage extends StatefulWidget {
 class QuestionState extends State<QuestionPage> {
   String _title = '模拟考试';
   int _pageIndex = 0;
-  int _tryPageIndex = 10;
   PageController _pageController;
   List<String> answersEnum = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
   Map<int, String> questionTypes = {1: '单选题', 2: '判断题', 3: '多选题'};
@@ -81,24 +81,59 @@ class QuestionState extends State<QuestionPage> {
   final deviceInfo = DeviceInfo();
   bool isReview = false;
   String _questionType;
+  int _deviceStatus;
+  int _startIndex;
 
   QuestionState(String type) {
     _questionType = type;
     isReview = false;
-    this.getQuestions();
   }
 
   @override
   void initState() {
     super.initState();
+    _init();
     _pageController = PageController(initialPage: _pageIndex);
+    this.getQuestions();
   }
 
-  _paySuccessCallback() {}
+  _init() async {
+    _deviceStatus = await deviceInfo.deviceStatus();
+  }
 
-  _changePage(index) {
-    print(index);
-    _pageController.jumpToPage(index);
+  _paySuccessCallback(String res) {
+    if (res == 'fail') return;
+    _pageIndex = 0;
+    getQuestions();
+  }
+
+  _changePage(String type) {
+    int len = questions.getLength();
+    setState(() {
+      _pageIndex = type == 'next' ? _pageIndex + 1 : _pageIndex - 1;
+    });
+    if (_deviceStatus == 1 && _pageIndex >= len) {
+      payViewKey.currentState.showPayPanel();
+      setState(() {
+        _pageIndex = len - 1;
+      });
+      return;
+    }
+    _pageController.jumpToPage(_pageIndex);
+  }
+
+  _pageChanged(index) {
+    setState(() {
+      _pageIndex = index;
+    });
+  }
+
+  _onPageEndChanged(index) {
+    if (_deviceStatus == 2) return;
+    int len = questions.getLength();
+    if (index == _startIndex && index == len - 1) {
+      payViewKey.currentState.showPayPanel();
+    }
   }
 
   getQuestions() {
@@ -142,7 +177,8 @@ class QuestionState extends State<QuestionPage> {
   Questions _getRandomQuestions(List listJson) {
     var rng = new Random();
     var realList = [];
-    for (var i = 0; i < 100; i++) {
+    int _totalNum = _deviceStatus == 2 ? 100 : listJson.length;
+    for (var i = 0; i < _totalNum; i++) {
       var rngIndex = rng.nextInt(listJson.length);
       realList.add(listJson[rngIndex]);
     }
@@ -165,13 +201,14 @@ class QuestionState extends State<QuestionPage> {
                 questions = null;
               }),
               Timer(Duration(milliseconds: 100), () {
+                _pageIndex = 0;
                 if (value == 'review') {
                   setState(() {
                     isReview = true;
                     questions = transSingletonData.transData;
                   });
                 } else {
-                  this.getQuestions();
+                  getQuestions();
                 }
               })
             });
@@ -189,10 +226,13 @@ class QuestionState extends State<QuestionPage> {
         actions: <Widget>[
           MaterialButton(
               onPressed: _submit,
-              child: Text(
-                '提交',
-                style: TextStyle(fontSize: 14.0, color: Color(0xffff775d)),
-              ),
+              child: !isReview
+                  ? Text(
+                      '提交',
+                      style:
+                          TextStyle(fontSize: 14.0, color: Color(0xffff775d)),
+                    )
+                  : Container(),
               shape: RoundedRectangleBorder(
                 side: BorderSide.none,
               ))
@@ -202,62 +242,52 @@ class QuestionState extends State<QuestionPage> {
       body: Stack(
         children: [
           PayView(key: payViewKey, payCallback: _paySuccessCallback),
-          PageView.builder(
+          CustomPageView.builder(
             scrollDirection: Axis.horizontal,
             itemCount: questions.getLength(),
             controller: _pageController,
-            onPageChanged: (index) {
-              if (index >= _tryPageIndex) {
-                _changePage(_tryPageIndex);
-                payViewKey.currentState.showPayPanel();
-                setState(() {
-                  _pageIndex = 3;
-                });
-                return;
-              }
-              setState(() {
-                _pageIndex = index;
-              });
-            },
+            onPageChanged: _pageChanged,
+            onPageStartChanged: (index) => {_startIndex = index},
+            onPageEndChanged: _onPageEndChanged,
             itemBuilder: (context, index) {
               return _buildPageViewItem(index);
             },
           ),
-          questions.getLength() != 0 ? new Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              decoration: BoxDecoration(
-                  border: Border(
-                      top: BorderSide(
-                color: Color(0x80cccccc),
-              ))),
-              padding: EdgeInsets.symmetric(horizontal: 30.0, vertical: 6.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _buildButton(0 == _pageIndex, Color(0xff333333),
-                      IconData(0xe606, fontFamily: 'MyIcons'), '上一题', () {
-                    setState(() {
-                      _pageIndex--;
-                    });
-                    _changePage(_pageIndex);
-                  }),
-                  _buildButton(
-                      _pageIndex == questions.getLength() - 1,
-                      Color(0xff333333),
-                      IconData(0xe60d, fontFamily: 'MyIcons'),
-                      '下一题', () {
-                    setState(() {
-                      _pageIndex++;
-                    });
-                    _changePage(_pageIndex);
-                  })
-                ],
-              ),
-            ),
-          ): Container()
+          questions.getLength() != 0
+              ? new Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    decoration: BoxDecoration(
+                        color: Colors.white,
+                        border: Border(
+                            top: BorderSide(
+                          color: Color(0x80cccccc),
+                        ))),
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 30.0, vertical: 6.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _buildButton(0 == _pageIndex, Color(0xff333333),
+                            IconData(0xe606, fontFamily: 'MyIcons'), '上一题', () {
+                          _changePage('prev');
+                        }),
+                        _buildButton(
+                            (_deviceStatus == 2 &&
+                                    _pageIndex == questions.getLength() - 1) ||
+                                _pageIndex == questions.getLength(),
+                            Color(0xff333333),
+                            IconData(0xe60d, fontFamily: 'MyIcons'),
+                            '下一题', () {
+                          _changePage('next');
+                        })
+                      ],
+                    ),
+                  ),
+                )
+              : Container()
         ],
       ),
     );
@@ -293,7 +323,7 @@ class QuestionState extends State<QuestionPage> {
         ? _buildMultiple(question)
         : _buildSingle(question);
     return SingleChildScrollView(
-      padding: EdgeInsets.only(bottom: 100.0),
+      padding: EdgeInsets.only(bottom: 200.0),
       child: Wrap(
         children: [
           Container(
@@ -307,7 +337,7 @@ class QuestionState extends State<QuestionPage> {
                     questionTypes[question.questionType],
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 10.0,
+                      fontSize: 12.0,
                     ),
                   ),
                   decoration: BoxDecoration(
