@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:chips_choice/chips_choice.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'constants.dart';
 import 'deviceUtil.dart';
@@ -81,6 +82,7 @@ class QuestionState extends State<QuestionPage> {
   final deviceInfo = DeviceInfo();
   bool isReview = false;
   String _questionType;
+  SharedPreferences _prefs;
   int _deviceStatus;
   int _startIndex;
 
@@ -92,18 +94,24 @@ class QuestionState extends State<QuestionPage> {
   @override
   void initState() {
     super.initState();
-    _init();
+    _getDeviceStatus();
     _pageController = PageController(initialPage: _pageIndex);
     this.getQuestions();
   }
 
-  _init() async {
-    _deviceStatus = await deviceInfo.deviceStatus();
+  _getDeviceStatus() async {
+    _prefs = await SharedPreferences.getInstance();
+    int status = _prefs?.getInt('deviceStatus');
+    if (status == null) {
+      status = await deviceInfo.deviceStatus();
+    }
+    _deviceStatus = status;
   }
 
-  _paySuccessCallback(String res) {
+  _paySuccessCallback(String res) async {
     if (res == 'fail') return;
     _pageIndex = 0;
+    _prefs.setInt('deviceStatus', 2);
     getQuestions();
   }
 
@@ -147,6 +155,7 @@ class QuestionState extends State<QuestionPage> {
   Future<Questions> loadQuestionJson() async {
     try {
       EasyLoading.show(status: '试题加载中');
+      await _getDeviceStatus();
       String androidId = await deviceInfo.getDeviceInfo();
       var url = '$apiHost/api/getQuestions';
       var response = await http.post(url, body: {

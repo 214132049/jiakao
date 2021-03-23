@@ -19,7 +19,7 @@ class DeviceInfo {
   /// status  0: 未激活  1:激活未支付  2:支付完成
   Future<int> deviceStatus() async {
     _prefs = await SharedPreferences.getInstance();
-    _prefs.setInt('deviceStatus', 0);
+    _prefs.remove('deviceStatus');
 
     String androidId = await this.getDeviceInfo();
     String url = '$apiHost/api/check';
