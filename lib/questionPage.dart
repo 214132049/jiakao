@@ -94,7 +94,6 @@ class QuestionState extends State<QuestionPage> {
   @override
   void initState() {
     super.initState();
-    _getDeviceStatus();
     _pageController = PageController(initialPage: _pageIndex);
     this.getQuestions();
   }
